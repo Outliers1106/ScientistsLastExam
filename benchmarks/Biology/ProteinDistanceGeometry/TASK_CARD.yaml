@@ -5,6 +5,8 @@ oracle:
   model: Public interval, bond-angle, excluded-volume and signed-volume losses
   feasibility: Strict output validation; trusted oracle recomputation; resource violations fail closed.
   deterministic: true
+  determinism_scope: Scoring fixed submitted coordinates in a fixed numerical environment.
+  reference_reproducible_across_platforms: false
   reproducibility: Fixed inputs and numerical environment; reference optimization is sensitive
     to BLAS configuration. See references/known_best.md for repeatability measurements.
 normalization:
@@ -19,8 +21,8 @@ citations:
 invariants:
 - Frozen procedural worlds and deterministic oracle.
 - Candidate mutations do not modify trusted scoring inputs.
-known_shortcuts: Zero-loss procedural witnesses exist. MDS plus longer least squares improves the
-  reference; real protein folding and external DGSOL comparisons remain out of scope.
+known_shortcuts: >-
+  Zero-loss procedural witnesses exist. MDS plus longer least squares improves the reference; real protein folding and external DGSOL comparisons remain out of scope. Independent reproduction: fixed ideal helix scored 0.820435; its mirror 0.061669; helix plus 20 evaluations 0.999992; plus 45 evaluations reached development/held-out 1.0 with zero loss in all four worlds (16 seconds on this host). Current helix family is saturated and requires replacement or withdrawal.
 review:
   domain: pending_external_domain_review
   evaluator_security: internal_strict_schema_budget_invariant_and_subprocess_tests; shared Linux
@@ -35,7 +37,9 @@ provenance:
     redistributed. External papers are citations only.
 novelty_risk:
   level: high
-  rationale: Established problem class; external scope and difficulty review remain pending.
+  rationale: LennardJonesCluster also optimizes molecular coordinates; this task instead scores public
+    interval, angle, exclusion and chirality constraints. The latter three are task-specific extensions
+    of distance geometry. Current helical instances are saturated.
 lineage:
   status: complete
   builder_model_ids:

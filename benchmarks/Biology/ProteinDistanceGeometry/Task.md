@@ -35,19 +35,14 @@ The straight-line baseline places bead i at [3.8*(i-(N-1)/2),0,0]. It is a legal
 artifact, not a physically valid conformation. Score is
 `clip((q-q_baseline)/(1-q_baseline),0,1)`, where `q=1/(1+L/0.2)`. Zero public loss
 defines perfect quality 1; the loss scale 0.2 resolves residual constraint errors.
-The input-only reference
-uses shortest-path distance completion, classical MDS, chooses the better
-reflection, then at most 45 nonlinear least-squares evaluations. It is a
-comparison solver, not the normalization endpoint or a global optimum. Development mean is the search
+Development mean is the search
 score; larger held-out worlds and raw constraint losses are sealed diagnostics.
 `valid` requires all four worlds valid. All worlds are repository-visible
 procedural panels. NumPy/SciPy are available. `EVAL_TIMEOUT_S=300` in the task
 entrypoint sets the candidate wall-clock deadline for all four worlds, including
 held-out worlds, matching the default `sle eval --timeout 300`. The worker also
 has the repository CPU resource limit; it is not a separate 300 seconds per world.
-The maintainer measured 96 seconds for a full reference evaluation, so the default
-leaves over 3x that observation. The outer wrapper allows an additional 120 seconds
-for trusted evaluation and subprocess cleanup. See the task card and measured evidence.
+The outer wrapper allows an additional 120 seconds for trusted evaluation and cleanup.
 
 [DGSOL's author page](https://www.mcs.anl.gov/~more/dgsol/) and Moré & Wu,
 *Distance geometry optimization for protein structures* (1999), motivate the
@@ -57,3 +52,8 @@ ForceFieldCalibration produces interaction parameters. Frontier-Engineering's
 `diverse_conformer_portfolio` selects existing conformers whereas this task
 constructs coordinates. The residual overlap risk is high; external review,
 all-atom validation and frontier difficulty calibration remain pending.
+
+Any invalid world makes the entire submission invalid: aggregate development and
+held-out scores are zero. Per-world diagnostics are retained only in trusted reports.
+
+Nearest task forms: LennardJonesCluster also optimizes molecular coordinates; this task instead scores public interval, angle, exclusion and chirality constraints. The latter three are task-specific extensions of distance geometry.

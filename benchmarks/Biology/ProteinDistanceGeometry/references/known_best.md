@@ -121,3 +121,9 @@ changed; these alternate drivers are diagnostic interventions only.
 For exact cross-host diagnosis, record `platform.platform()`, NumPy/SciPy
 versions, `numpy.show_config()`, `scipy.show_config()`, BLAS thread environment
 variables and the complete per-instance metrics alongside the run.
+
+## Admission review — 2026-09-08
+
+Independent reproduction: fixed ideal helix scored 0.820435; its mirror 0.061669; helix plus 20 evaluations 0.999992; plus 45 evaluations reached development/held-out 1.0 with zero loss in all four worlds (16 seconds on this host). Current helix family is saturated and requires replacement or withdrawal.
+
+These findings are from the [maintainer review](https://github.com/Geniusyingmanji/ScientistsLastExam/pull/44) except the explicitly identified independent geometry reproduction. They supersede any earlier suggestion that a low reference score alone establishes useful headroom. Scientific instance/normalization revisions remain pending; passing software tests does not resolve these blockers. No frontier-model draws were performed in this follow-up.

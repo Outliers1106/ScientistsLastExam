@@ -120,5 +120,12 @@ def evaluate(build_conformation):
         except Exception:
             score, valid, raw = 0., False, 0.
         rows.append(dict(score=score, valid=valid, constraint_loss=raw))
-    return dict(combined_score=float(np.mean([r["score"] for r in rows[:2]])), valid=float(all(r["valid"] for r in rows)),
+    metrics = dict(combined_score=float(np.mean([r["score"] for r in rows[:2]])), valid=float(all(r["valid"] for r in rows)),
                 heldout_score=float(np.mean([r["score"] for r in rows[2:]])), per_instance=rows)
+    if not all(row["valid"] for row in rows):
+        metrics["valid"] = 0.0
+        metrics["combined_score"] = 0.0
+        for key in tuple(metrics):
+            if key.startswith("heldout_") and "score" in key:
+                metrics[key] = 0.0
+    return metrics
