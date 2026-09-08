@@ -44,3 +44,9 @@ classical comparisons, frontier draws, long-horizon search and external domain
 review remain pending. The task stays **candidate**.
 
 Scientific sources: doi:10.1016/j.ifacol.2020.12.1167.
+
+## Admission review — 2026-09-08
+
+Maintainer probes: bounded Nelder-Mead from the baseline scored 0.985; the shipped grid-plus-local probe scores 1.0. Refining one anchor improved utility by 14.4 percent without score credit. Current low-dimensional instance family is not ready for admission.
+
+These findings are from the [maintainer review](https://github.com/Geniusyingmanji/ScientistsLastExam/pull/40) except the explicitly identified independent geometry reproduction. They supersede any earlier suggestion that a low reference score alone establishes useful headroom. Scientific instance/normalization revisions remain pending; passing software tests does not resolve these blockers. No frontier-model draws were performed in this follow-up.

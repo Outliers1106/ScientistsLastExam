@@ -20,8 +20,8 @@ invariants:
 - Negative or non-finite schedules are invalid.
 - Every design is evaluated under identical nominal and shifted regimes.
 - Candidate-reported trajectories and objectives are ignored.
-known_shortcuts: The three-stage open-loop policy is low dimensional and may be saturated by grid
-  or differential-evolution search; calibration must show headroom before admission.
+known_shortcuts: >-
+  The three-stage open-loop policy is low dimensional and may be saturated by grid or differential-evolution search; calibration must show headroom before admission. Maintainer probes: bounded Nelder-Mead from the baseline scored 0.985; the shipped grid-plus-local probe scores 1.0. Refining one anchor improved utility by 14.4 percent without score credit. Current low-dimensional instance family is not ready for admission.
 review:
   domain: pending_external_bioprocess_engineering
   evaluator_security: internal_integrator_bounds_shift_schema_and_malformed_output_tests
@@ -32,7 +32,9 @@ provenance:
   fresh_confirmation_status: not_completed
 novelty_risk:
   level: medium
-  rationale: The reduced kinetics and policy class are public and may admit simple parameter search.
+  rationale: BatteryFastChargingProfile is structurally close constrained time-profile optimization; Frontier-Eng
+    ReactionOptimisation shares frozen-simulator continuous design. The biological overflow mechanism
+    differs, but does not resolve the optimization shortcut.
 lineage:
   status: complete
   builder_model_ids:
@@ -60,3 +62,8 @@ long_horizon:
   measurement_health_passed: false
   material_headroom_after_2h: false
   evidence: []
+
+evaluation_budget:
+  EVAL_TIMEOUT_S: 300
+  scope: Total candidate wall-clock deadline across all instances.
+  override: Task wrapper --timeout or sle eval --timeout.

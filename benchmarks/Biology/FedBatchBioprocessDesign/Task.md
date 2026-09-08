@@ -21,12 +21,7 @@ kla_per_h, and induction_burden.
 There must be exactly three bounded feed rates. The trusted simulator recomputes the trajectory.
 Utility is the worst productivity across nominal, growth-rate-shifted, and oxygen-transfer-shifted
 conditions; any volume, acetate, or terminal biomass violation gives zero in that condition.
-Score is `clip((utility-baseline)/(anchor-baseline),0,1)`. The fixed constant-feed
-baseline defines zero. Frozen feasible schedules refined by bounded Nelder-Mead
-from the grid reference define one; the trusted oracle recomputes their utilities.
-The original 54-schedule grid reference remains unchanged and scores below one.
-The five anchor schedules and an input-only reproduction solver are documented in
-`references/known_best.md` and `references/headroom_probe.py`. Feed concentration, capacity, initial state, strain kinetics and oxygen transfer vary across
+Score is `clip((utility-baseline)/(anchor-baseline),0,1)`. The fixed constant-feed baseline defines zero; a frozen feasible utility anchor defines one. Feed concentration, capacity, initial state, strain kinetics and oxygen transfer vary across
 instances; held-out strain/reactor parameters remain evaluator-only.
 
 This is a reduced-order process simulator, not a claim about a named production strain.
@@ -68,12 +63,12 @@ and final X*V >= `minimum_final_biomass_g`.
 
 Scenario utility is final P*V divided by harvest time (g/h); an infeasible scenario gets
 zero. Robust utility U is the minimum over the three public scenarios. The baseline uses
-feeds `[0.10, 0.10, 0.10]`, induction 10 h, harvest 20 h. The reference searches the 54
-combinations of feed rates in `{0.05, 0.14, 0.23}^3`, induction in `{7, 12}` h, and harvest
-22 h. This grid reference is a comparison solver, scoring about 0.516577.
-The upper anchor U_anchor is the robust utility of the world-specific frozen feasible
-schedule in `verification/evaluator.py::ANCHOR_DESIGNS`, obtained by Nelder-Mead
-refinement. Baseline and anchor utilities are recomputed for the current public problem.
-Score is `clip((U-U_baseline)/max(1e-12, U_anchor-U_baseline), 0, 1)`.
+feeds `[0.10, 0.10, 0.10]`, induction 10 h, harvest 20 h. The oracle recomputes baseline and frozen anchor utilities. Score is
+`clip((U-U_baseline)/max(1e-12, U_anchor-U_baseline), 0, 1)`.
 `valid` and `feasibility_rate` currently describe submission-contract validity; physical
 constraint violations give zero utility and are not represented by these two fields.
+
+Any invalid world makes the entire submission invalid: aggregate development and
+held-out scores are zero. Per-world diagnostics are retained only in trusted reports.
+
+Nearest task forms: BatteryFastChargingProfile is structurally close constrained time-profile optimization; Frontier-Eng ReactionOptimisation shares frozen-simulator continuous design. The biological overflow mechanism differs, but does not resolve the optimization shortcut.

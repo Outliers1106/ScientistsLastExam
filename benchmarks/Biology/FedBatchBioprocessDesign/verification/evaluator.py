@@ -85,5 +85,12 @@ def evaluate(design_process):
   score=np.clip((utility-base)/max(1e-12,ref-base),0,1)
   rows.append({"valid":valid,"utility":utility,"baseline":base,"anchor":ref,"score":float(score)})
  dev=[rows[i] for i in DEV]; held=[rows[i] for i in HELD]
- return {"combined_score":float(np.mean([r["score"] for r in dev])),"valid":1.0 if all(r["valid"] for r in dev) else 0.0,
+ metrics = {"combined_score":float(np.mean([r["score"] for r in dev])),"valid":1.0 if all(r["valid"] for r in dev) else 0.0,
          "feasibility_rate":float(np.mean([r["valid"] for r in dev])),"heldout_robust_score":float(np.mean([r["score"] for r in held])),"per_instance":rows}
+ if not all(row["valid"] for row in rows):
+     metrics["valid"] = 0.0
+     metrics["combined_score"] = 0.0
+     for key in tuple(metrics):
+         if key.startswith("heldout_") and "score" in key:
+             metrics[key] = 0.0
+ return metrics
