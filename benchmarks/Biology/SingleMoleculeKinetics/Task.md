@@ -26,11 +26,7 @@ There is no bleaching, background, detector dead time or cross-talk in this
 reduced model. All transitions and emissions use independent draws.
 
 Supported worlds have distinct emissions and rates in the public bounds.
-Null worlds have one stationary emitter at efficiency 0.5. Alias worlds have
-two states with identical efficiency 0.5 and arbitrary switching rates: summing
-over latent paths proves their observations are the same iid Poisson process
-as null worlds. Refusal is correct for either; no reason-label distinction is
-required. Supported worlds are scored under the best simultaneous permutation
+Refuse when the observations do not identify distinct emission states and switching rates. Supported worlds are scored under the best simultaneous permutation
 of the two rate and efficiency arrays. Mechanism quality is
 `max(0,1-(mean(abs(log(k/k_true)))+3*mean(abs(e-e_true)))/0.10)`.
 A supported refusal gets zero. An unsupported refusal gets one, a claim zero.
@@ -44,15 +40,14 @@ Sealed metrics separately report mechanism quality, false claims/total claims
 confidence Brier loss, and held-out scientific quality. Brier correctness uses
 the threshold 0.5 above. Invalid worlds receive no scientific credit.
 The repository contains procedural worlds; held-out means excluded from search
-score, not secret data. Default candidate wall-clock deadline is 300 seconds across all worlds
-(`sle eval --timeout 300`); worker CPU limits also apply.
+score, not secret data. Default candidate wall-clock deadline is 120 seconds across all worlds
+(`sle eval --timeout 120`); worker CPU limits also apply.
 
-Baseline refuses without querying. Input-only reference acquires two 0.2-second
-traces, checks shot-noise-corrected efficiency variance, then fits a two-state
-HMM by two-start Baum–Welch and converts its transition matrix to CTMC rates.
-It is a classical reference, not evidence of expert difficulty. This first
-implementation has eight worlds, no population hierarchy and no exposure-shift
-predictive metric; external ebFRET comparison and stronger calibration are pending.
+Baseline refuses without querying. This reduced observation model does not integrate emissions
+over transitions within an exposure; it samples instantaneous states. External domain review remains pending.
+
+Any invalid world makes the entire submission invalid: aggregate development and
+held-out scores are zero. Per-world diagnostics are retained only in trusted reports.
 
 [van de Meent et al. (2014)](https://doi.org/10.1016/j.bpj.2013.12.055)
 motivates hidden-state inference in single-molecule FRET. No external code or
@@ -61,3 +56,5 @@ observations; EnzymeKineticsLaw selects bulk rate laws; GeneNetworkIntervention
 infers regulation. This task infers classical hidden-state switching from photons.
 
 The shared `sle.contract_lint` discovery checks apply to this contract.
+
+Nearest task forms: ActiveNoiseSpectroscopy and CatalystDeactivationLab infer dynamical parameters under observation budgets; this task uses instantaneous two-state photon emissions rather than integrated exposure or bulk kinetics.

@@ -1,4 +1,4 @@
-"""Independent model checks for the second biology wave."""
+"""Regression checks for SingleMoleculeKinetics."""
 import importlib.util
 import itertools
 from pathlib import Path
@@ -137,3 +137,29 @@ def test_callback_keyword_and_mixed_arguments_preserve_observations(name, values
     assert keyword(**dict(zip(keys, values))) == expected
     assert mixed(values[0], **{keys[1]: values[1]}) == expected
     assert not any((lab.violated for lab in (positional, keyword, mixed)))
+
+
+def test_single_invalid_instance_zeros_all_aggregate_scores():
+    import importlib.util
+    from pathlib import Path
+    path = Path(__file__).resolve().parents[1] / "benchmarks/Biology/SingleMoleculeKinetics/verification/evaluator.py"
+    spec = importlib.util.spec_from_file_location("invalid_instance_oracle", path)
+    oracle = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(oracle)
+    reference_spec = importlib.util.spec_from_file_location("reference", path.parents[1] / 'references/reference.py')
+    reference = importlib.util.module_from_spec(reference_spec)
+    reference_spec.loader.exec_module(reference)
+    calls = 0
+    def malformed(*args):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise ValueError("one invalid instance")
+        return reference.infer_kinetics(*args)
+    result = oracle.evaluate(malformed)
+    assert calls > 1
+    worlds = result.get("per_world", result.get("per_instance"))
+    assert not worlds[0]["valid"] and all(row["valid"] for row in worlds[1:])
+    assert result["valid"] == result["combined_score"] == 0
+    assert all(value == 0 for key, value in result.items()
+               if key.startswith("heldout_") and "score" in key)

@@ -150,7 +150,7 @@ def evaluate(infer_kinetics):
                          claim=int(claim), false_positive=int(claim and not supported), supported=supported,
                          refusal=refusal, cost=lab.spent, calibration=(out["confidence"]-float(correct))**2 if valid else 1.))
     dev, held = rows[:4], rows[4:]
-    return dict(combined_score=float(max(0., 2*np.mean([r["scientific"] for r in dev])-1)),
+    metrics = dict(combined_score=float(max(0., 2*np.mean([r["scientific"] for r in dev])-1)),
                 valid=float(all(r["valid"] for r in rows)), development_mechanism_score=float(np.mean([r["mechanism"] for r in dev if r["supported"]])),
                 development_false_discovery_count=sum(r["false_positive"] for r in dev),
                 development_claim_count=sum(r["claim"] for r in dev),
@@ -159,3 +159,10 @@ def evaluate(infer_kinetics):
                 development_discovery_coverage=float(np.mean([r["claim"] for r in dev if r["supported"]])),
                 development_brier_loss=float(np.mean([r["calibration"] for r in dev])),
                 heldout_scientific_score=float(np.mean([r["scientific"] for r in held])), per_world=rows)
+    if not all(row["valid"] for row in rows):
+        metrics["valid"] = 0.0
+        metrics["combined_score"] = 0.0
+        for key in tuple(metrics):
+            if key.startswith("heldout_") and "score" in key:
+                metrics[key] = 0.0
+    return metrics

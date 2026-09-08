@@ -17,11 +17,8 @@ citations:
 invariants:
 - Frozen procedural worlds and deterministic oracle.
 - Candidate mutations do not modify trusted scoring inputs.
-known_shortcuts: The reference correctly refuses the null and identical-emission worlds. An analytic
-  two-state transition check and a simultaneous label-swap check pass. The all-claim equal-emitter
-  candidate and the all-refusal candidate both score zero. Two-state separated-emission HMMs are
-  easy for classical estimation here. No bleaching or population hierarchy is implemented. No ebFRET
-  comparison, hundreds-of-probes sweep or long-horizon headroom evidence is available.
+known_shortcuts: >-
+  The reference correctly refuses the null and identical-emission worlds. An analytic two-state transition check and a simultaneous label-swap check pass. The all-claim equal-emitter candidate and the all-refusal candidate both score zero. Two-state separated-emission HMMs are easy for classical estimation here. No bleaching or population hierarchy is implemented. No ebFRET comparison, hundreds-of-probes sweep or long-horizon headroom evidence is available. Maintainer truth-start MLE diagnostic matched reference development 0.671 and held-out 0.621; one held-out supported world scored zero even from the true initialization. The current reference is close to the observation-information limit, requiring budget/world redesign.
 review:
   domain: pending_external_domain_review
   evaluator_security: internal_strict_schema_budget_invariant_and_subprocess_tests; shared Linux
@@ -36,7 +33,9 @@ provenance:
     redistributed. External papers are citations only.
 novelty_risk:
   level: high
-  rationale: Established problem class; external scope and difficulty review remain pending.
+  rationale: ActiveNoiseSpectroscopy and CatalystDeactivationLab infer dynamical parameters under observation
+    budgets; this task uses instantaneous two-state photon emissions rather than integrated exposure or
+    bulk kinetics.
 lineage:
   status: complete
   builder_model_ids:
@@ -66,3 +65,8 @@ long_horizon:
   measurement_health_passed: false
   material_headroom_after_2h: false
   evidence: []
+
+evaluation_budget:
+  EVAL_TIMEOUT_S: 120
+  scope: Total candidate wall-clock deadline across all instances.
+  override: Task wrapper --timeout or sle eval --timeout.
