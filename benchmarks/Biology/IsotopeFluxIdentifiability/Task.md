@@ -43,12 +43,12 @@ are allowed in separate calls and charged again. Any invalid query or overrun
 permanently invalidates the world, even if caught. Initial public inputs and
 menus are identical across all worlds. Refuse when the observations do not identify the requested flux combinations.
 
-For supported positive-net worlds mechanism quality is
+For identifiable worlds mechanism quality is
 `max(0,1-mean(abs(estimate-truth)/maximum(truth,0.1))/0.025)` over (v,x).
-A supported refusal gets zero; a zero-net refusal gets one; a zero-net claim
+A supported refusal gets zero; an unsupported refusal gets one; an unsupported claim
 gets zero. Normalize development mean q as `max(0,(q-1/3)/(2/3))`, so always
 refusing gets exactly zero. Development has two supported worlds and one
-zero-net world; held-out has shifted fluxes and the same composition.
+unidentifiable world; held-out has shifted fluxes and the same composition.
 `valid` requires all six worlds valid. Sealed metrics report mechanism, false
 claim and total claim counts, their ratio, supported coverage, correct refusal,
 Brier loss and held-out scientific quality. Invalid worlds earn no credit.
