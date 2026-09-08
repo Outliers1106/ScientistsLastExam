@@ -23,3 +23,9 @@ threshold remains the original 0.55, with balanced sampling replacing one-cell s
 These inspected panels are development evidence, not a fresh blind confirmation.
 ## Provenance
 Count modeling follows DESeq2 (doi:10.1186/s13059-014-0550-8) and ComBat-seq (doi:10.1093/nargab/lqaa078). Retrieved 2026-09-05.
+
+## Admission review — 2026-09-08
+
+Maintainer probes: one-threshold sweep 0.649; two-threshold grid 0.871; top-4 rule 0.820. Batch-column removal matched the 0.511369 reference. These unresolved shortcuts block admission.
+
+These findings are from the [maintainer review](https://github.com/Geniusyingmanji/ScientistsLastExam/pull/38) except the explicitly identified independent geometry reproduction. They supersede any earlier suggestion that a low reference score alone establishes useful headroom. Scientific instance/normalization revisions remain pending; passing software tests does not resolve these blockers. No frontier-model draws were performed in this follow-up.

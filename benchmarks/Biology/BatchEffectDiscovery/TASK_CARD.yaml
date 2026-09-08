@@ -18,10 +18,15 @@ invariants:
 - Null worlds contain no condition effects.
 - False-discovery rates publish numerator and denominator.
 - Blanket abstention and the shipped baseline score zero.
-known_shortcuts: Identical initial layouts and identical supported/null query menus remove the sample-count label shortcut. Blanket denial and all layout-only no-discovery policies score zero. Fixed-regression saturation and independent calibration remain pending.
+known_shortcuts: >-
+  Identical initial layouts and identical supported/null query menus remove the sample-count label shortcut. Blanket denial and all layout-only no-discovery policies score zero. Fixed-regression saturation and independent calibration remain pending. Maintainer probes: one-threshold sweep 0.649; two-threshold grid 0.871; top-4 rule 0.820. Batch-column removal matched the 0.511369 reference. These unresolved shortcuts block admission.
 review: {domain: pending_external_biostatistics, evaluator_security: internal_budget_rng_schema_refusal_and_metric_sealing_tests}
 provenance: {class: procedural, target_source: Repository-visible deterministic negative-binomial panels with held-out seeds., task_contract_public_before_evaluation: true, fresh_confirmation_status: not_completed}
-novelty_risk: {level: medium, rationale: Standard RNA-seq models are public and fixed workflows may solve the prototype.}
+novelty_risk:
+  level: medium
+  rationale: SurvivorshipConfoundedDesign and OccupancyDetectionDesign also separate latent mechanisms
+    from sampling/confounding; this task targets RNA count effects. DemographicSFS and ProspectiveMetaAnalysis
+    use different evidence models. Frontier-Eng SingleCellAnalysis tasks are supervised prediction tasks.
 lineage:
   status: complete
   builder_model_ids: ["openai-codex:current-session"]
@@ -35,3 +40,8 @@ lineage:
   freeze_timestamp: null
 construction_audit: {status: prototype_internal, author_domain: computational_science, reviewer_domain: pending_external, expert_hours: null, red_team_rounds: 1, oracle_disagreement_status: not_quantified, independent_recomputation_status: reference_and_invariant_tests_only}
 long_horizon: {status: not_tested, measurement_health_passed: false, material_headroom_after_2h: false, evidence: []}
+
+evaluation_budget:
+  EVAL_TIMEOUT_S: 5
+  scope: Total candidate wall-clock deadline across all instances.
+  override: Task wrapper --timeout or sle eval --timeout.

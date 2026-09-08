@@ -39,3 +39,8 @@ batch-blind baseline all normalize to zero. The development utility is normalize
 never attempts a discovery. Discovery/refusal/FDR axes are still reported separately. Held-out worlds are sealed.
 Counts are deterministic negative-binomial procedural measurements, not patient data.
 sle.contract_lint is importable and free to call for submission-shape checks.
+
+Any invalid world makes the entire submission invalid: aggregate development and
+held-out scores are zero. Per-world diagnostics are retained only in trusted reports.
+
+Nearest task forms: SurvivorshipConfoundedDesign and OccupancyDetectionDesign also separate latent mechanisms from sampling/confounding; this task targets RNA count effects. DemographicSFS and ProspectiveMetaAnalysis use different evidence models. Frontier-Eng SingleCellAnalysis tasks are supervised prediction tasks.

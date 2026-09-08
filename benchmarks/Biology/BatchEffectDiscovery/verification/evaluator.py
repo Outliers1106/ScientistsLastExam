@@ -110,7 +110,7 @@ def evaluate(analyze_expression):
     floor=max(abstain_floor,baseline_raw,no_discovery_floor)
     raw=float(np.mean([r["scientific"] for r in dev])); combined=max(0.0,(raw-floor)/(1-floor))
     unsupported=[r for r in dev if r["kind"]!="supported"]
-    return {"combined_score":combined,"valid":1.0 if all(r["valid"] for r in dev) else 0.0,
+    metrics = {"combined_score":combined,"valid":1.0 if all(r["valid"] for r in dev) else 0.0,
             "feasibility_rate":float(np.mean([r["valid"] for r in dev])),
             "development_mechanism_score":float(np.mean([r["mechanism"] for r in dev if r["kind"]=="supported"])),
             "development_false_discovery_rate":sum(r["false_positive"] for r in unsupported)/max(1,sum(r["claimed"] for r in unsupported)),
@@ -119,3 +119,10 @@ def evaluate(analyze_expression):
             "development_correct_refusal_rate":float(np.mean([r["refusal"] for r in dev if r["kind"]=="confounded"])),
             "development_discovery_coverage":float(np.mean([r["coverage"] for r in dev if r["kind"]=="supported"])),
             "heldout_scientific_score":float(np.mean([r["scientific"] for r in held])),"per_world":rows}
+    if not all(row["valid"] for row in rows):
+        metrics["valid"] = 0.0
+        metrics["combined_score"] = 0.0
+        for key in tuple(metrics):
+            if key.startswith("heldout_") and "score" in key:
+                metrics[key] = 0.0
+    return metrics
