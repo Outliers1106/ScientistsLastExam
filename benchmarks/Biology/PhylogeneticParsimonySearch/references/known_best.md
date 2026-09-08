@@ -1,51 +1,55 @@
-# PhylogeneticParsimonySearch: scoring evidence — 2026-09-06
+# PhylogeneticParsimonySearch: withdrawal after repair — 2026-09-08
 
-## Scientific endpoints
+## Status and measured repairs
 
-Zero is the caterpillar tree. One is the sum across sites of distinct-state
-count minus one, a lower bound on every tree's Fitch cost. This relaxation may
-be unattainable jointly across sites; it is not a published record. Scoring is
-now explicitly **clipped**, and average linkage is no longer the endpoint.
-The unchanged input-only NNI probe in `verification/headroom_probe.py` improves
-both development and held-out scores, which remain bounded by one.
+Independently permuted taxon-to-sequence assignments and input rows using a
+separate deterministic RNG. The underlying sequence multiset is unchanged.
+Regression coverage includes arbitrary renaming, row reordering, the label-only
+block probe and twenty additional fixed generator seeds.
 
-## Reproduction and measurements
+On the five scored instances after repair:
 
-The legal `solution.py` baseline scores **0.000000**, valid=1. The input-only
-comparison reference is `verification/reference_search.py`.
-Reproduce using:
+| Solver | Development | Held-out |
+| --- | ---: | ---: |
+| Label-only blocks | 0.065333826 | 0.006547619 |
+| UPGMA reference | 0.938471597 | 0.934821429 |
+| UPGMA + NNI | 0.943260352 | 0.943452381 |
+
+The original label-only result was 0.667610. Although label leakage is repaired,
+removing the structured labels also makes the caterpillar baseline substantially
+worse. The unchanged UPGMA reference now closes almost the entire baseline gap;
+NNI adds less than one percentage point on both splits. This family is therefore
+withdrawn. No new denominator, weaker reference, or reachable-top claim was added
+to force a 0.5–0.8 score. The existing sitewise bound remains a relaxation and is
+not asserted jointly attainable.
+
+## Reproduction
 
 ```sh
-python -m sle eval --allow-uncertified --task Phylogenetics/PhylogeneticParsimonySearch \
-  --candidate benchmarks/Biology/PhylogeneticParsimonySearch/verification/reference_search.py --timeout 300
+OPENBLAS_NUM_THREADS=1 python -m pytest -q tests/test_phylogenetic_parsimony.py
+python scripts/check_task_contribution.py --task Phylogenetics/PhylogeneticParsimonySearch --timeout 300
 ```
 
-Baseline and reference were validated through the Linux candidate sandbox on
-implementation commit `3b62c02`; baseline score was exactly zero and both were valid.
+The dedicated regression suite reproduces the repaired contract. Scientific
+shortcut comparisons are reported above and in the corresponding PR discussion;
+they are not frontier-model calibration draws. `verification/reference_*.py`
+is the input-only comparison. For parsimony, `verification/shortcut_probe.py`
+and `verification/headroom_probe.py` provide the negative and search controls.
 
-| Solver | Development normalized score | heldout_score | Valid |
-| --- | ---: | ---: | ---: |
-| Original reference | 0.67836236 | 0.65117581 | 1 |
-| Public-input headroom probe | 0.70492678 | 0.69624860 | 1 |
+## Remaining evidence requirements
 
-The discovery held-out column is raw scientific quality, not the normalized
-development scale. Optimization held-out scores use the same normalization as
-development. All reference algorithms are unchanged by this calibration.
-Pre-calibration score measurements do not describe this revision.
+Software validity and deterministic repeats do not establish task difficulty.
+The current instance family is withdrawn; baseline/reference tests check valid,
+bounded execution, **not** the former 0.5–0.8 admission band. This test change
+records a failed calibration rather than relaxing admission requirements.
+No blind model draws, long-horizon calibration or external domain confirmation
+were performed. Seeds are repository-visible; held-out means omitted from search
+feedback, not secret. A replacement must document new instances, reachable
+endpoints, all shortcut/ablation measurements and independent confirmation.
 
-## Limits and provenance
+## History
 
-These original procedural worlds are repository-visible; held-out means excluded
-from search feedback, not server-secret. No external datasets or code are
-redistributed. Model simplifications and nearest-task overlap are in `Task.md`.
-Precision/headroom measurements do not establish expert difficulty: strong
-classical comparisons, frontier draws, long-horizon search and external domain
-review remain pending. The task stays **candidate**.
-
-Scientific sources: doi:10.1111/j.1096-0031.1999.tb00277.x, doi:10.1186/s12859-018-2009-1.
-
-## Admission review — 2026-09-08
-
-Maintainer probes: a label-only block tree scored 0.667610 versus reference 0.678362; multistart SPR reached about 0.732 development and 0.709 held-out. Label leakage and unreachable normalization headroom remain admission blockers.
-
-These findings are from the [maintainer review](https://github.com/Geniusyingmanji/ScientistsLastExam/pull/41) except the explicitly identified independent geometry reproduction. They supersede any earlier suggestion that a low reference score alone establishes useful headroom. Scientific instance/normalization revisions remain pending; passing software tests does not resolve these blockers. No frontier-model draws were performed in this follow-up.
+The original measurements and the maintainer's September 8 findings remain in
+[PR #41](https://github.com/Geniusyingmanji/ScientistsLastExam/pull/41).
+The branch preserves the fixes and their regression tests for a future redesign;
+closing the current PR does not assert that this scientific subject is unusable.

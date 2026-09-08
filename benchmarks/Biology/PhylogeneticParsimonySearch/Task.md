@@ -1,5 +1,8 @@
 # PhylogeneticParsimonySearch — search unrooted binary tree space
 
+This candidate submission is withdrawn pending instance redesign. The branch preserves
+the repaired executable contract; it is not an admitted or recalibrated benchmark.
+
 ## Question and nearest tasks
 
 Return a binary Newick tree with low Fitch parsimony cost for the supplied alignment. The task is

@@ -15,9 +15,21 @@ def _alignment(seed):
  return np.asarray(seqs,dtype=int)
 
 def _problem(seed):
- a=_alignment(seed); alphabet=np.array(list("ACGT"))
- return {"taxa":[f"t{i}" for i in range(N)],"alignment":["".join(alphabet[row]) for row in a],
-         "criterion":"unordered_fitch_parsimony","missing_symbol":"?"}
+    alignment = _alignment(seed)
+    alphabet = np.array(list("ACGT"))
+    # Assign labels independently of the latent clades. Use a separate RNG so
+    # neither permutation changes the underlying evolutionary realization.
+    rng = np.random.default_rng((seed, 92817))
+    alignment = alignment[rng.permutation(N)]
+    labels = [f"t{i}" for i in range(N)]
+    # Input row position must not become a replacement for the label shortcut.
+    order = rng.permutation(N)
+    return {
+        "taxa": [labels[i] for i in order],
+        "alignment": ["".join(alphabet[alignment[i]]) for i in order],
+        "criterion": "unordered_fitch_parsimony",
+        "missing_symbol": "?",
+    }
 
 def _parse_newick(text,taxa):
  if not isinstance(text,str) or len(text)>10000: raise ValueError("bad tree")

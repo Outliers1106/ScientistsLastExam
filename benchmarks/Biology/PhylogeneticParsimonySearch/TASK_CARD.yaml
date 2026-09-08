@@ -1,17 +1,17 @@
 schema_version: 2
-scientific_question: Search binary tree space for lower Fitch parsimony cost without claiming that
-  the objective identifies true history.
+scientific_question: Search binary tree space for lower Fitch parsimony cost without claiming that the
+  objective identifies true history.
 artifact: A Newick topology containing every supplied taxon exactly once.
 oracle:
   model: Exact unordered Fitch scoring on deterministic procedural alignments.
-  feasibility: The independent parser requires a finite-size strictly binary tree with exact leaf
-    coverage.
+  feasibility: The independent parser requires a finite-size strictly binary tree with exact leaf coverage.
   deterministic: true
 normalization:
   baseline: Deterministic caterpillar topology normalizes to zero.
-  reference: Truth-blind average linkage; NNI hill-climb demonstrates strictly better trees.
-  score: Clipped caterpillar-gap closure toward the sum of per-site distinct-state lower bounds;
-    no uncapped claim.
+  reference: 'Unchanged UPGMA after label permutation: 0.938471597 development, 0.934821429 held-out.
+    Withdrawn calibration.'
+  score: Clipped caterpillar-gap closure toward the sum of per-site distinct-state lower bounds; no uncapped
+    claim.
 citations:
 - id: doi:10.1111/j.1096-0031.1999.tb00277.x
   title: The Parsimony Ratchet, a New Method for Rapid Parsimony Analysis
@@ -21,10 +21,19 @@ invariants:
 - Leaf-order and internal-node naming do not enter the parsimony objective.
 - Every taxon appears exactly once and multifurcations are invalid.
 - Small trees are cross-checkable by topology enumeration.
-known_shortcuts: >-
-  Average linkage is below the sitewise relaxation bound. NNI improves its development and held-out score; mature SPR/ratchet solvers may remain strong. Maintainer probes: a label-only block tree scored 0.667610 versus reference 0.678362; multistart SPR reached about 0.732 development and 0.709 held-out. Label leakage and unreachable normalization headroom remain admission blockers.
+known_shortcuts: 'Independently permuted taxon-to-sequence assignments and input rows using a separate
+  deterministic RNG. The underlying sequence multiset is unchanged. Regression coverage includes arbitrary
+  renaming, row reordering, the label-only block probe and twenty additional fixed generator seeds.  On
+  the five scored instances after repair:  | Solver | Development | Held-out | | --- | ---: | ---: | |
+  Label-only blocks | 0.065333826 | 0.006547619 | | UPGMA reference | 0.938471597 | 0.934821429 | | UPGMA
+  + NNI | 0.943260352 | 0.943452381 |  The original label-only result was 0.667610. Although label leakage
+  is repaired, removing the structured labels also makes the caterpillar baseline substantially worse.
+  The unchanged UPGMA reference now closes almost the entire baseline gap; NNI adds less than one percentage
+  point on both splits. This family is therefore withdrawn. No new denominator, weaker reference, or reachable-top
+  claim was added to force a 0.5–0.8 score. The existing sitewise bound remains a relaxation and is not
+  asserted jointly attainable.'
 review:
-  domain: pending_external_phylogenetics
+  domain: withdrawn_pending_instance_redesign
   evaluator_security: internal_parser_fitch_permutation_malformed_tree_and_small_instance_tests
 provenance:
   class: procedural
@@ -63,7 +72,6 @@ long_horizon:
   measurement_health_passed: false
   material_headroom_after_2h: false
   evidence: []
-
 evaluation_budget:
   EVAL_TIMEOUT_S: 5
   scope: Total candidate wall-clock deadline across all instances.

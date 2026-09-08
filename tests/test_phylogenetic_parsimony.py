@@ -29,13 +29,13 @@ class BiologyExpansionTests(unittest.TestCase):
             ref=load(BIO/task/"verification"/refname,"ref_"+task)
             cls.loaded[task]=(ev,entry,ev.evaluate(getattr(base,entry)),ev.evaluate(getattr(ref,entry)))
 
-    def test_baselines_are_valid_zero_and_references_improve(self):
+    def test_withdrawn_family_scores_are_valid_and_bounded(self):
         for task,(_,_,baseline,reference) in self.loaded.items():
             self.assertEqual(baseline["valid"],1.0,task)
             self.assertAlmostEqual(baseline["combined_score"],0.0,places=12,msg=task)
             self.assertEqual(reference["valid"],1.0,task)
             self.assertGreaterEqual(reference["combined_score"],0.5,task)
-            self.assertLessEqual(reference["combined_score"],0.8,task)
+            self.assertLessEqual(reference["combined_score"],1.0,task)
 
     def test_evaluators_are_deterministic(self):
         for task,entry,refname in TASKS:
@@ -130,3 +130,48 @@ def test_single_invalid_instance_zeros_all_aggregate_scores():
     assert result["valid"] == result["combined_score"] == 0
     assert all(value == 0 for key, value in result.items()
                if key.startswith("heldout_") and "score" in key)
+
+
+def test_permutations_preserve_alignment_and_destroy_label_and_row_shortcuts():
+    ev = load(BIO/"PhylogeneticParsimonySearch/verification/evaluator.py", "permutation_ev")
+    probe = load(BIO/"PhylogeneticParsimonySearch/verification/shortcut_probe.py", "shortcut")
+    scores = {"labels": [], "rows": []}
+    # Include twenty additional fixed seeds, not just the scored panel.
+    for seed in (*ev.SPECS, *range(901, 921)):
+        problem = ev._problem(seed)
+        alphabet = np.array(list("ACGT"))
+        raw = ["".join(alphabet[row]) for row in ev._alignment(seed)]
+        assert sorted(problem["alignment"]) == sorted(raw)
+        assert sorted(problem["taxa"]) == sorted(f"t{i}" for i in range(ev.N))
+        assert problem == ev._problem(seed)
+        baseline = ev._fitch(ev._caterpillar(problem["taxa"]), problem)
+        gap = baseline - ev._lower_bound(problem)
+        for name, solver in (("labels", probe.build_tree), ("rows", probe.row_blocks)):
+            cost = ev._fitch(solver(problem), problem)
+            scores[name].append(max(0, (baseline-cost)/gap))
+    assert max(np.mean(values) for values in scores.values()) < 0.2
+
+
+def test_fitch_cost_is_invariant_to_arbitrary_taxon_renaming_and_row_order():
+    ev = load(BIO/"PhylogeneticParsimonySearch/verification/evaluator.py", "rename_ev")
+    ref = load(BIO/"PhylogeneticParsimonySearch/verification/reference_search.py", "rename_ref")
+    for seed in ev.SPECS:
+        problem = ev._problem(seed)
+        tree = ref.build_tree(problem)
+        names = {name: f"species_{i}" for i, name in enumerate(problem["taxa"])}
+        import re
+        renamed_tree = re.sub(r"t[0-9]+", lambda m: names[m.group()], tree)
+        order = np.random.default_rng(seed+321).permutation(ev.N)
+        renamed = dict(problem, taxa=[names[problem["taxa"][i]] for i in order],
+                       alignment=[problem["alignment"][i] for i in order])
+        assert ev._fitch(tree, problem) == ev._fitch(renamed_tree, renamed)
+
+
+def test_withdrawal_reason_is_reproducible_after_removing_label_leak():
+    ev = load(BIO/"PhylogeneticParsimonySearch/verification/evaluator.py", "withdrawn_ev")
+    ref = load(BIO/"PhylogeneticParsimonySearch/verification/reference_search.py", "withdrawn_ref")
+    # This is a regression documenting why the PR is withdrawn, not an
+    # admission check or a replacement 0.5--0.8 calibration requirement.
+    result = ev.evaluate(ref.build_tree)
+    assert result["combined_score"] > 0.9
+    assert result["heldout_score"] > 0.9
