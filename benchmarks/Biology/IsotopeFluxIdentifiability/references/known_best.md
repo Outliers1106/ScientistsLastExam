@@ -44,3 +44,9 @@ classical comparisons, frontier draws, long-horizon search and external domain
 review remain pending. The task stays **candidate**.
 
 Scientific sources: doi:10.1016/j.ymben.2006.09.001.
+
+## Admission review — 2026-09-08
+
+Maintainer truth-start weighted-fit diagnostic reached about 0.78 versus reference 0.737; one held-out supported world still scored zero. Increasing reference nfev to 2000 did not improve score. Information budget and refusal worlds require redesign.
+
+These findings are from the [maintainer review](https://github.com/Geniusyingmanji/ScientistsLastExam/pull/43) except the explicitly identified independent geometry reproduction. They supersede any earlier suggestion that a low reference score alone establishes useful headroom. Scientific instance/normalization revisions remain pending; passing software tests does not resolve these blockers. No frontier-model draws were performed in this follow-up.

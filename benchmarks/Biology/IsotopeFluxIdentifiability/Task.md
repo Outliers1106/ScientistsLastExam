@@ -41,8 +41,7 @@ Return fields: `time_ids` in requested order, `counts` of shape len(time_ids),2,
 `ions_per_pool`, and `cost=len(time_ids)`. `budget_units=6`; repeated samples
 are allowed in separate calls and charged again. Any invalid query or overrun
 permanently invalidates the world, even if caught. Initial public inputs and
-menus are identical across all worlds. At zero net influx all pools stay
-unlabeled for every x; refuse the pair because exchange cannot be recovered.
+menus are identical across all worlds. Refuse when the observations do not identify the requested flux combinations.
 
 For supported positive-net worlds mechanism quality is
 `max(0,1-mean(abs(estimate-truth)/maximum(truth,0.1))/0.025)` over (v,x).
@@ -55,13 +54,12 @@ claim and total claim counts, their ratio, supported coverage, correct refusal,
 Brier loss and held-out scientific quality. Invalid worlds earn no credit.
 All procedural worlds are repository-visible, not private test data.
 
-Baseline refuses. Input-only reference samples all full-tracer times, uses
-three-start bounded nonlinear least squares and a local Jacobian rank check.
-This is not a global profile-likelihood certification. Default candidate wall-clock deadline is
-300 seconds across all worlds (`sle eval --timeout 300`); worker CPU limits also
-apply. Independent tests compare full isotopomers to a reduced
-mass-balance ODE, but comparison against INCA and external domain review remain
-pending; no frontier difficulty or general-network correctness is claimed.
+Baseline refuses. The task wrapper candidate wall-clock deadline is 120 seconds
+across all worlds; worker CPU limits also apply. Independent tests compare full
+isotopomers to a reduced mass-balance ODE. External domain review remains pending.
+
+Any invalid world makes the entire submission invalid: aggregate development and
+held-out scores are zero. Per-world diagnostics are retained only in trusted reports.
 
 [Antoniewicz et al. (2007)](https://doi.org/10.1016/j.ymben.2006.09.001)
 motivates atom-subset balance, and [Young (2014)](https://doi.org/10.1093/bioinformatics/btu015)
@@ -72,3 +70,5 @@ population history. Here isotope atom transport limits which flux combinations
 can be inferred from budgeted tracer measurements.
 
 The shared `sle.contract_lint` discovery checks apply to this contract.
+
+Nearest task forms: MethaneSourceAttribution and GeneNetworkIntervention also infer hidden mechanisms from constrained evidence; this task models isotope atom transport and identifiable flux combinations.

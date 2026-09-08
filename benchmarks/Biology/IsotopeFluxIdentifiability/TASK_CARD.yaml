@@ -16,12 +16,8 @@ citations:
 invariants:
 - Frozen procedural worlds and deterministic oracle.
 - Candidate mutations do not modify trusted scoring inputs.
-known_shortcuts: Full four-isotopomer predictions agree with an independently coded three-mass ODE
-  within 2e-8. Parallel reverse-route splits conserve steady-state mass and are observationally equivalent;
-  zero influx leaves every exchange value unidentifiable. Always-refuse and all-zero claims score
-  zero. Only identifiable aggregate exchange is requested. The local Jacobian check is not profile
-  likelihood; general EMU, INCA replication and broad shortcut sweeps remain pending. The small network
-  is nearly saturated by classical fitting.
+known_shortcuts: >-
+  Full four-isotopomer predictions agree with an independently coded three-mass ODE within 2e-8. Parallel reverse-route splits conserve steady-state mass and are observationally equivalent; zero influx leaves every exchange value unidentifiable. Always-refuse and all-zero claims score zero. Only identifiable aggregate exchange is requested. The local Jacobian check is not profile likelihood; general EMU, INCA replication and broad shortcut sweeps remain pending. The small network is nearly saturated by classical fitting. Maintainer truth-start weighted-fit diagnostic reached about 0.78 versus reference 0.737; one held-out supported world still scored zero. Increasing reference nfev to 2000 did not improve score. Information budget and refusal worlds require redesign.
 review:
   domain: pending_external_domain_review
   evaluator_security: internal_strict_schema_budget_invariant_and_subprocess_tests; shared Linux
@@ -36,7 +32,8 @@ provenance:
     redistributed. External papers are citations only.
 novelty_risk:
   level: high
-  rationale: Established problem class; external scope and difficulty review remain pending.
+  rationale: MethaneSourceAttribution and GeneNetworkIntervention also infer hidden mechanisms from constrained
+    evidence; this task models isotope atom transport and identifiable flux combinations.
 lineage:
   status: complete
   builder_model_ids:
@@ -66,3 +63,8 @@ long_horizon:
   measurement_health_passed: false
   material_headroom_after_2h: false
   evidence: []
+
+evaluation_budget:
+  EVAL_TIMEOUT_S: 120
+  scope: Total candidate wall-clock deadline across all instances.
+  override: Task wrapper --timeout or sle eval --timeout.
