@@ -13,7 +13,9 @@ def _truth(kind, seed):
     rng=np.random.default_rng(seed)
     effects=np.zeros(len(GENES))
     if kind=="supported":
-        chosen=np.sort(rng.choice(len(GENES),4,replace=False)); effects[chosen]=rng.choice([-1,1],4)*rng.uniform(.8,1.25,4)
+        count = int(rng.integers(2, 9))
+        chosen = np.sort(rng.choice(len(GENES), count, replace=False))
+        effects[chosen] = rng.choice([-1, 1], count) * rng.uniform(.4, 1.25, count)
     batch=rng.normal(0,.5,len(GENES)); base=rng.uniform(3.2,5.0,len(GENES))
     return effects,batch,base
 
@@ -109,16 +111,29 @@ def evaluate(analyze_expression):
     no_discovery_floor=sum(r["kind"]!="supported" for r in dev)/len(dev)
     floor=max(abstain_floor,baseline_raw,no_discovery_floor)
     raw=float(np.mean([r["scientific"] for r in dev])); combined=max(0.0,(raw-floor)/(1-floor))
-    unsupported=[r for r in dev if r["kind"]!="supported"]
-    metrics = {"combined_score":combined,"valid":1.0 if all(r["valid"] for r in dev) else 0.0,
-            "feasibility_rate":float(np.mean([r["valid"] for r in dev])),
-            "development_mechanism_score":float(np.mean([r["mechanism"] for r in dev if r["kind"]=="supported"])),
-            "development_false_discovery_rate":sum(r["false_positive"] for r in unsupported)/max(1,sum(r["claimed"] for r in unsupported)),
-            "development_false_discovery_count":sum(r["false_positive"] for r in unsupported),
-            "development_unsupported_claim_count":sum(r["claimed"] for r in unsupported),
-            "development_correct_refusal_rate":float(np.mean([r["refusal"] for r in dev if r["kind"]=="confounded"])),
-            "development_discovery_coverage":float(np.mean([r["coverage"] for r in dev if r["kind"]=="supported"])),
-            "heldout_scientific_score":float(np.mean([r["scientific"] for r in held])),"per_world":rows}
+    metrics = {"combined_score": combined, "valid": 1.0,
+               "feasibility_rate": float(np.mean([r["valid"] for r in dev])),
+               "per_world": rows}
+    for prefix, panel in (("development", dev), ("heldout", held)):
+        unsupported = [r for r in panel if r["kind"] == "confounded"]
+        supported = [r for r in panel if r["kind"] == "supported"]
+        false = sum(r["false_positive"] for r in panel)
+        claims = sum(r["claimed"] for r in panel)
+        metrics.update({
+            f"{prefix}_mechanism_score": float(np.mean([r["mechanism"] for r in supported])),
+            f"{prefix}_false_discovery_rate": false / max(1, claims),
+            f"{prefix}_false_discovery_count": false,
+            f"{prefix}_claim_count": claims,
+            f"{prefix}_correct_refusal_rate": float(np.mean([r["refusal"] for r in unsupported])),
+            f"{prefix}_refusal_world_count": len(unsupported),
+            f"{prefix}_discovery_coverage": float(np.mean([r["coverage"] for r in supported])),
+        })
+    held_baseline = float(np.mean([
+        _score_world(kind, seed, _baseline_output(_problem(kind, seed, _Lab(kind, seed))), True)["scientific"]
+        for kind, seed in (SPECS[i] for i in HELD)
+    ]))
+    held_floor = max(held_baseline, sum(r["kind"] != "supported" for r in held) / len(held))
+    metrics["heldout_scientific_score"] = max(0.0, (float(np.mean([r["scientific"] for r in held]))-held_floor)/(1-held_floor))
     if not all(row["valid"] for row in rows):
         metrics["valid"] = 0.0
         metrics["combined_score"] = 0.0

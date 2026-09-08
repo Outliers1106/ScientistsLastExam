@@ -1,5 +1,8 @@
 # BatchEffectDiscovery — differential expression under batch confounding
 
+This candidate submission is withdrawn pending instance redesign. The branch preserves
+the repaired executable contract; it is not an admitted or recalibrated benchmark.
+
 ## Question and nearest tasks
 
 Use a limited follow-up sequencing budget to decide which genes truly respond to condition while
@@ -34,9 +37,9 @@ discoveries. The evaluator separately reports supported-world gene recovery, fal
 and its numerator/denominator, correct identifiability refusal, and discovery coverage. Supported
 claims receive partial credit for effect sign and magnitude as well as gene identity; null and
 confounded decisions require the matching reason code. Blanket abstention, blanket no-effect denial, layout-only refusal/denial, and the shipped
-batch-blind baseline all normalize to zero. The development utility is normalized above
+batch-blind baseline all normalize to zero. Each split is normalized independently by the same rule above
 `max(baseline_raw, fraction_of_null_or_confounded_worlds)`; this zeroes every policy that
-never attempts a discovery. Discovery/refusal/FDR axes are still reported separately. Held-out worlds are sealed.
+never attempts a discovery. Discovery/refusal/FDR axes are still reported separately. Held-out seeds are repository-visible and excluded from search feedback.
 Counts are deterministic negative-binomial procedural measurements, not patient data.
 sle.contract_lint is importable and free to call for submission-shape checks.
 
@@ -44,3 +47,6 @@ Any invalid world makes the entire submission invalid: aggregate development and
 held-out scores are zero. Per-world diagnostics are retained only in trusted reports.
 
 Nearest task forms: SurvivorshipConfoundedDesign and OccupancyDetectionDesign also separate latent mechanisms from sampling/confounding; this task targets RNA count effects. DemographicSFS and ProspectiveMetaAnalysis use different evidence models. Frontier-Eng SingleCellAnalysis tasks are supervised prediction tasks.
+
+FDR includes all worlds, including false gene claims in supported worlds. Each split
+reports `claim_count` and `refusal_world_count` alongside the rates.

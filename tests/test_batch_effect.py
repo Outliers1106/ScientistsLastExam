@@ -29,13 +29,13 @@ class BiologyExpansionTests(unittest.TestCase):
             ref=load(BIO/task/"verification"/refname,"ref_"+task)
             cls.loaded[task]=(ev,entry,ev.evaluate(getattr(base,entry)),ev.evaluate(getattr(ref,entry)))
 
-    def test_baselines_are_valid_zero_and_references_improve(self):
+    def test_withdrawn_family_scores_are_valid_and_bounded(self):
         for task,(_,_,baseline,reference) in self.loaded.items():
             self.assertEqual(baseline["valid"],1.0,task)
             self.assertAlmostEqual(baseline["combined_score"],0.0,places=12,msg=task)
             self.assertEqual(reference["valid"],1.0,task)
-            self.assertGreaterEqual(reference["combined_score"],0.5,task)
-            self.assertLessEqual(reference["combined_score"],0.8,task)
+            self.assertGreater(reference["combined_score"],0.0,task)
+            self.assertLessEqual(reference["combined_score"],1.0,task)
 
     def test_evaluators_are_deterministic(self):
         for task,entry,refname in TASKS:
@@ -77,7 +77,7 @@ print(json.dumps([ev.evaluate(getattr(base,entry)),ev.evaluate(getattr(ref,entry
 
     def test_discovery_tasks_publish_axes_and_denominators(self):
         keys={"development_mechanism_score","development_false_discovery_rate",
-              "development_false_discovery_count","development_unsupported_claim_count",
+              "development_false_discovery_count","development_claim_count",
               "development_correct_refusal_rate","development_discovery_coverage"}
         for task in ('BatchEffectDiscovery',):
             self.assertTrue(keys<=set(self.loaded[task][3]),task)
@@ -162,3 +162,56 @@ def test_single_invalid_instance_zeros_all_aggregate_scores():
     assert result["valid"] == result["combined_score"] == 0
     assert all(value == 0 for key, value in result.items()
                if key.startswith("heldout_") and "score" in key)
+
+
+def test_supported_gene_counts_vary_across_seeds():
+    ev = load(BIO/"BatchEffectDiscovery/verification/evaluator.py", "gene_counts_ev")
+    counts = {np.count_nonzero(ev._truth("supported", seed)[0]) for seed in range(100, 200)}
+    assert counts == set(range(2, 9))
+    for kind in ("null", "confounded"):
+        assert not np.any(ev._truth(kind, 101)[0])
+
+
+def test_heldout_no_discovery_policy_scores_zero():
+    ev = load(BIO/"BatchEffectDiscovery/verification/evaluator.py", "heldout_floor_ev")
+    def policy(p, measure):
+        confounded = len(p["available_cells"]) < 3
+        return dict(discoveries=[], abstain=confounded,
+                    reason_code="not_identifiable" if confounded else "no_effect")
+    result = ev.evaluate(policy)
+    assert result["combined_score"] == result["heldout_scientific_score"] == 0
+    assert result["development_refusal_world_count"] == result["heldout_refusal_world_count"] == 1
+
+
+def test_fdr_counts_false_claims_in_supported_worlds_too():
+    ev = load(BIO/"BatchEffectDiscovery/verification/evaluator.py", "fdr_ev")
+    ref = load(BIO/"BatchEffectDiscovery/verification/reference_analysis.py", "fdr_ref")
+    result = ev.evaluate(ref.analyze_expression)
+    for prefix, indices in (("development", ev.DEV), ("heldout", ev.HELD)):
+        rows = [result["per_world"][i] for i in indices]
+        false = sum(row["false_positive"] for row in rows)
+        claims = sum(row["claimed"] for row in rows)
+        assert result[f"{prefix}_false_discovery_count"] == false
+        assert result[f"{prefix}_claim_count"] == claims
+        assert result[f"{prefix}_false_discovery_rate"] == false/max(1, claims)
+    assert any(row["kind"] == "supported" and row["false_positive"] > 0 for row in result["per_world"])
+
+
+def test_withdrawal_ablation_batch_column_still_has_no_effect():
+    ev = load(BIO/"BatchEffectDiscovery/verification/evaluator.py", "ablation_ev")
+    ref = load(BIO/"BatchEffectDiscovery/verification/reference_analysis.py", "ablation_ref")
+    def without_batch(p, measure):
+        if len(p["available_cells"]) < 3:
+            return dict(discoveries=[], abstain=True, reason_code="not_identifiable")
+        rows = list(p["initial_samples"])
+        for i in range(p["sample_budget"]):
+            rows.append(measure(*((0, 1), (1, 0))[i % 2]))
+        x = np.array([[1, row["condition"]] for row in rows], float)
+        y = np.log1p([row["counts"] for row in rows])
+        effect = np.linalg.lstsq(x, y, rcond=None)[0][1]
+        hits = [dict(gene=g, effect=float(e)) for g, e in zip(p["gene_ids"], effect) if abs(e) > .55]
+        return dict(discoveries=hits, abstain=False, reason_code="supported" if hits else "no_effect")
+    full = ev.evaluate(ref.analyze_expression)
+    ablated = ev.evaluate(without_batch)
+    assert abs(full["combined_score"]-ablated["combined_score"]) < 1e-12
+    assert abs(full["heldout_scientific_score"]-ablated["heldout_scientific_score"]) < 1e-12

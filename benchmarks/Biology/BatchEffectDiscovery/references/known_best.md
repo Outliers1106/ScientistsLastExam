@@ -1,31 +1,47 @@
-# BatchEffectDiscovery reference evidence
+# BatchEffectDiscovery: withdrawal after repair — 2026-09-08
 
-## Scoring
-Scientific utility is normalized above the frozen batch-blind baseline and the best no-discovery policy (correct confounding refusal plus blanket effect denial).
-## Anchor
-All panels and truth sets are deterministically recomputed by the evaluator.
-## Baseline
-Marginal log-fold change ignoring batch scores 0 after normalization.
-## Reference
-After removing the layout label leak, balanced cross-cell sampling and batch-adjusted regression
-score 0.511369 development and 0.655606 held-out raw scientific utility. These are different
-scales: the development score is normalized; held-out scientific utility is raw. The reference
-makes one unsupported-world false claim (FDR 1/1), so it is not a calibrated domain standard.
-The previous 0.926/0.969 measurements describe the superseded world generator.
-## Ablations
-No follow-up, batch-blind regression, fixed fold-change, blanket discovery and blanket abstention are required probes.
-## Shortcut and robustness
-All worlds now have four initial rows and the supported/null menus are identical. Blanket denial
-and a layout-only refusal/denial strategy both score exactly zero. A standard fixed pipeline may
-still saturate this prototype; admission requires frontier draws and server-held panels.
-A construction-time threshold sweep (0.45–0.70) was inspected diagnostically; the shipped
-threshold remains the original 0.55, with balanced sampling replacing one-cell sampling.
-These inspected panels are development evidence, not a fresh blind confirmation.
-## Provenance
-Count modeling follows DESeq2 (doi:10.1186/s13059-014-0550-8) and ComBat-seq (doi:10.1093/nargab/lqaa078). Retrieved 2026-09-05.
+## Status and measured repairs
 
-## Admission review — 2026-09-08
+Fixed the four-gene construction constant: supported worlds now sample 2–8 genes
+and include smaller effects. FDR now counts claims in every world, with an explicit
+claim denominator; held-out scores use the same normalization rule as development,
+and both splits report refusal denominators.
 
-Maintainer probes: one-threshold sweep 0.649; two-threshold grid 0.871; top-4 rule 0.820. Batch-column removal matched the 0.511369 reference. These unresolved shortcuts block admission.
+These repairs do not rescue the scientific design. After the repair the reference
+scores 0.443361109 development / 0 held-out. Removing the batch column gives
+0.443361109 / 0 as well (roundoff below 1e-15). Before the repair both methods
+scored 0.511368501 development. The balanced follow-up layout still makes batch
+adjustment unnecessary, and `available_cells` identifies the confounded world
+without measurements. Variable gene counts remove one shortcut but do not establish
+admission or headroom. The family is withdrawn pending a new observation design.
 
-These findings are from the [maintainer review](https://github.com/Geniusyingmanji/ScientistsLastExam/pull/38) except the explicitly identified independent geometry reproduction. They supersede any earlier suggestion that a low reference score alone establishes useful headroom. Scientific instance/normalization revisions remain pending; passing software tests does not resolve these blockers. No frontier-model draws were performed in this follow-up.
+## Reproduction
+
+```sh
+OPENBLAS_NUM_THREADS=1 python -m pytest -q tests/test_batch_effect.py
+python scripts/check_task_contribution.py --task Genomics/BatchEffectDiscovery --timeout 300
+```
+
+The dedicated regression suite reproduces the repaired contract. Scientific
+shortcut comparisons are reported above and in the corresponding PR discussion;
+they are not frontier-model calibration draws. `verification/reference_*.py`
+is the input-only comparison. For parsimony, `verification/shortcut_probe.py`
+and `verification/headroom_probe.py` provide the negative and search controls.
+
+## Remaining evidence requirements
+
+Software validity and deterministic repeats do not establish task difficulty.
+The current instance family is withdrawn; baseline/reference tests check valid,
+bounded execution, **not** the former 0.5–0.8 admission band. This test change
+records a failed calibration rather than relaxing admission requirements.
+No blind model draws, long-horizon calibration or external domain confirmation
+were performed. Seeds are repository-visible; held-out means omitted from search
+feedback, not secret. A replacement must document new instances, reachable
+endpoints, all shortcut/ablation measurements and independent confirmation.
+
+## History
+
+The original measurements and the maintainer's September 8 findings remain in
+[PR #38](https://github.com/Geniusyingmanji/ScientistsLastExam/pull/38).
+The branch preserves the fixes and their regression tests for a future redesign;
+closing the current PR does not assert that this scientific subject is unusable.
