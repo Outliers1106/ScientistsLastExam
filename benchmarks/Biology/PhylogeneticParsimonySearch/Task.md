@@ -24,9 +24,13 @@ tree independently and computes Fitch cost site by site. Score is clipped to [0,
 caterpillar tree. `C_lower = sum_site(number_of_distinct_observed_states-1)`
 is a topology-independent lower bound: every additional observed state requires
 at least one change on any tree. Equality may require incompatible per-site trees,
-so 1.0 is a relaxation bound, not an asserted attainable optimum. Average linkage
-is a comparison reference below this bound; NNI search earns strictly more credit.
+so 1.0 is a relaxation bound, not an asserted attainable optimum.
 Held-out alignments are separate. This task makes no uncapped record claim.
 
 The alignments are deterministic procedural panels designed to test tree search. They are not a
 new phylogeny or a biological inference result.
+
+Any invalid world makes the entire submission invalid: aggregate development and
+held-out scores are zero. Per-world diagnostics are retained only in trusted reports.
+
+Nearest task forms: NonlinearCodeRecords and QuantumErrorDecoder occupy nearby combinatorial construction forms; RNAInverseDesign is a biological sequence/structure design neighbor. This task is clipped parsimony optimization on procedural alignments, not an open-record construction.

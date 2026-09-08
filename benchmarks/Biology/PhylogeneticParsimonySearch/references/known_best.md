@@ -43,3 +43,9 @@ classical comparisons, frontier draws, long-horizon search and external domain
 review remain pending. The task stays **candidate**.
 
 Scientific sources: doi:10.1111/j.1096-0031.1999.tb00277.x, doi:10.1186/s12859-018-2009-1.
+
+## Admission review — 2026-09-08
+
+Maintainer probes: a label-only block tree scored 0.667610 versus reference 0.678362; multistart SPR reached about 0.732 development and 0.709 held-out. Label leakage and unreachable normalization headroom remain admission blockers.
+
+These findings are from the [maintainer review](https://github.com/Geniusyingmanji/ScientistsLastExam/pull/41) except the explicitly identified independent geometry reproduction. They supersede any earlier suggestion that a low reference score alone establishes useful headroom. Scientific instance/normalization revisions remain pending; passing software tests does not resolve these blockers. No frontier-model draws were performed in this follow-up.

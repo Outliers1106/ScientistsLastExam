@@ -1,4 +1,4 @@
-"""Executable validity checks for the first biology expansion prototypes."""
+"""Regression checks for PhylogeneticParsimonySearch."""
 from __future__ import annotations
 import importlib.util
 import sys
@@ -104,3 +104,29 @@ print(json.dumps([ev.evaluate(getattr(base,entry)),ev.evaluate(getattr(ref,entry
         self.assertLessEqual(metrics["combined_score"],1.0)
         for row in metrics["per_instance"]:
             self.assertLessEqual(row["lower_bound"],row["parsimony"])
+
+
+def test_single_invalid_instance_zeros_all_aggregate_scores():
+    import importlib.util
+    from pathlib import Path
+    path = Path(__file__).resolve().parents[1] / "benchmarks/Biology/PhylogeneticParsimonySearch/verification/evaluator.py"
+    spec = importlib.util.spec_from_file_location("invalid_instance_oracle", path)
+    oracle = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(oracle)
+    reference_spec = importlib.util.spec_from_file_location("reference", path.parents[1] / 'verification/reference_search.py')
+    reference = importlib.util.module_from_spec(reference_spec)
+    reference_spec.loader.exec_module(reference)
+    calls = 0
+    def malformed(*args):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise ValueError("one invalid instance")
+        return reference.build_tree(*args)
+    result = oracle.evaluate(malformed)
+    assert calls > 1
+    worlds = result.get("per_world", result.get("per_instance"))
+    assert not worlds[0]["valid"] and all(row["valid"] for row in worlds[1:])
+    assert result["valid"] == result["combined_score"] == 0
+    assert all(value == 0 for key, value in result.items()
+               if key.startswith("heldout_") and "score" in key)

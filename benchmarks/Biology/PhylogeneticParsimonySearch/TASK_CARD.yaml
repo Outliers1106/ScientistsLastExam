@@ -21,8 +21,8 @@ invariants:
 - Leaf-order and internal-node naming do not enter the parsimony objective.
 - Every taxon appears exactly once and multifurcations are invalid.
 - Small trees are cross-checkable by topology enumeration.
-known_shortcuts: Average linkage is below the sitewise relaxation bound. NNI improves its development
-  and held-out score; mature SPR/ratchet solvers may remain strong.
+known_shortcuts: >-
+  Average linkage is below the sitewise relaxation bound. NNI improves its development and held-out score; mature SPR/ratchet solvers may remain strong. Maintainer probes: a label-only block tree scored 0.667610 versus reference 0.678362; multistart SPR reached about 0.732 development and 0.709 held-out. Label leakage and unreachable normalization headroom remain admission blockers.
 review:
   domain: pending_external_phylogenetics
   evaluator_security: internal_parser_fitch_permutation_malformed_tree_and_small_instance_tests
@@ -33,7 +33,9 @@ provenance:
   fresh_confirmation_status: not_completed
 novelty_risk:
   level: high
-  rationale: Standard phylogenetic heuristics are mature and may be reproduced from pretraining.
+  rationale: NonlinearCodeRecords and QuantumErrorDecoder occupy nearby combinatorial construction forms;
+    RNAInverseDesign is a biological sequence/structure design neighbor. This task is clipped parsimony
+    optimization on procedural alignments, not an open-record construction.
 lineage:
   status: complete
   builder_model_ids:
@@ -61,3 +63,8 @@ long_horizon:
   measurement_health_passed: false
   material_headroom_after_2h: false
   evidence: []
+
+evaluation_budget:
+  EVAL_TIMEOUT_S: 5
+  scope: Total candidate wall-clock deadline across all instances.
+  override: Task wrapper --timeout or sle eval --timeout.
