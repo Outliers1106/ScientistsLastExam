@@ -1,0 +1,93 @@
+schema_version: 2
+scientific_question: Recover the unrooted species tree of eight species and its internal branch lengths in coalescent units from a budgeted catalogue of loci, when the species tree lies in the anomaly zone so the most frequent gene tree is a different tree, two species evolve fast enough that the free uncorrected gene trees join them, and some worlds contain a hybrid species that no species tree can explain.
+artifact: A verdict, a Newick species tree with branch lengths when the verdict is tree, a confidence, and an optional refusal.
+oracle:
+  model: procedurally generated eight-species trees and one-hybrid networks; per locus a gene tree under the multispecies coalescent with per-species rate multipliers, then a Jukes-Cantor alignment with gamma-distributed site rates in one of three rate classes, and a neighbour-joining tree on the plain Jukes-Cantor distance returned with the alignment; worlds are anomaly-zone caterpillars, two-cherry trees with two fast-evolving species, or one-hybrid networks with inheritance probability between 0.35 and 0.5
+  feasibility: charged loci from a public catalogue, exact gating on the unrooted topology, internal branch lengths scored by log error, tree worlds scored on the tree, and calibrated refusal on reticulate worlds
+  deterministic: true
+normalization:
+  baseline: concatenation of the longest fast loci, neighbour joining on the plain Jukes-Cantor distance, never declining
+  reference: gamma-corrected distance gene trees re-estimated from 240 medium-rate loci of 800 sites, exhaustive quartet consensus over the 10395 unrooted topologies, branch lengths inverted from the quartet frequencies, and a refusal when the minority-topology imbalance around one species exceeds a threshold
+  score: development mechanism recovery normalized above always-abstain; topology, branch lengths, false discovery, refusal, coverage, calibration, spend and the held-out split stay separate
+citations:
+- id: doi:10.1371/journal.pgen.0020068
+  title: Discordance of Species Trees with Their Most Likely Gene Trees
+- id: doi:10.1093/sysbio/syt023
+  title: Anomalous Unrooted Gene Trees
+- id: doi:10.1080/10635150601146041
+  title: Inconsistency of Phylogenetic Estimates from Concatenated Data under Coalescence
+- id: doi:10.1007/s00285-010-0355-7
+  title: Identifying the rooted species tree from the distribution of unrooted gene trees under the coalescent
+- id: doi:10.1093/bioinformatics/btu462
+  title: "ASTRAL: genome-scale coalescent-based species tree estimation"
+- id: doi:10.1371/journal.pgen.1005896
+  title: Inferring Phylogenetic Networks with Maximum Pseudolikelihood under Incomplete Lineage Sorting
+- id: doi:10.1016/j.tpb.2008.10.004
+  title: "Detecting hybrid speciation in the presence of incomplete lineage sorting using gene tree incongruence: A model"
+- id: doi:10.2307/2412923
+  title: Cases in which Parsimony or Compatibility Methods Will be Positively Misleading
+- id: doi:10.1093/sysbio/syy061
+  title: "Long-Branch Attraction in Species Tree Estimation: Inconsistency of Partitioned Likelihood and Topology-Based Summary Methods"
+- id: doi:10.1093/genetics/164.4.1645
+  title: Bayes Estimation of Species Divergence Times and Ancestral Population Sizes Using DNA Sequences From Multiple Loci
+invariants:
+- every tree world is in the anomaly zone by measurement, not by assumption; over one hundred thousand simulated gene trees the species-tree topology ranks between third and twenty-seventh by frequency, with the gap to the top topology at least three standard errors
+- no quartet is anomalous under the coalescent, and the reference's exhaustive quartet consensus is consistent where the most frequent gene tree, greedy consensus and concatenation are not; greedy consensus in its place loses 0.43 of the score
+- the sequencing centre's gene trees use the plain Jukes-Cantor distance while sites evolve under gamma-distributed rates of published shape, so the two fast-evolving species attract each other on the faster loci and the free trees lose 0.56 of the score; the rate multipliers are unpublished, so the correction has to come from the published site-rate model, not from knowing which species are fast
+- under any species tree the two minority topologies of a quartet are equally probable, so a hybrid is detectable only from the imbalance in the quartets that contain it; on the reference's loci the imbalance statistic is at most 82.6 on any tree world and at least 171.6 on any reticulate world, with the threshold at 115
+- the catalogue prices length and not rate class, so the choice of rate class is a scientific choice and not a budgeting one; slow loci lose 0.08, fast loci 0.34, and the free gene trees on fast loci 0.78
+- half the reference's budget costs 0.35 and a quarter scores zero on the development split, so the budget is not free
+- declining every world scores exactly zero by construction, and so does naming one fixed tree everywhere; declining a tree world is a false discovery, not a shrug, because it claims a hybrid
+- loci are charged and overspend fails closed; buying a locus twice returns the same data and is charged once; malformed submissions score zero and never raise out of the evaluator
+- held-out split, per-world rows and the discovery axes remain evaluator-only
+known_shortcuts: A sweep of 1260 low-dimensional strategies that take the free gene trees as given - one catalogue cell, topology by greedy consensus, the most frequent gene tree, neighbour joining on the mean Jukes-Cantor distance or quartet consensus, refusal never, on a discordance threshold or on the minority-imbalance statistic, and branch lengths constant or from the quartet frequencies - reaches 0.838 on the development split and 0.604 held out, against a reference of 0.877 and 0.929 and a ceiling of 1.0. The top strategy is neighbour joining on the mean distance over slow 300-site loci, which is a consistent method under the coalescent; it falls behind on branch lengths and collapses held out. Without quartet consensus and quartet lengths the sweep tops out at 0.744 and 0.509, on fast loci at 0.331, and never declining at 0.338. Every world seed is repository-visible and a future server-held split is required. The reference is deliberately not at the ceiling; its branch-length score is 0.75 because it does not correct the quartet frequencies for gene-tree estimation error, it weights every quartet equally, and it declines on a fixed threshold rather than a test of the fitted tree, so those axes retain headroom. The eight-taxon, one-genome-per-species setting with Jukes-Cantor sequences is a controlled research abstraction; gene flow between non-sister lineages, multiple hybrids, recombination within loci and missing data are out of scope.
+review:
+  domain: pending_external_phylogenomics
+  evaluator_security: automated_bad_candidate_crash_sweep_determinism_and_abstention_normalization_checks
+provenance:
+  class: procedural
+  target_source: Repository-visible deterministic generator with twelve development worlds (four anomaly-zone trees, four two-fast-species trees, four one-hybrid networks) and six sealed held-out worlds, each with its own catalogue of 2700 loci.
+  task_contract_public_before_evaluation: true
+  fresh_confirmation_status: not_completed
+novelty_risk:
+  level: medium
+  rationale: The anomaly zone (Degnan and Rosenberg 2006), the inconsistency of concatenation (Kubatko and Degnan 2007), quartet-based species-tree estimation (Allman, Degnan and Rhodes 2011; Mirarab et al. 2014) and long-branch attraction under uncorrected distances (Felsenstein 1978; Roch, Nute and Warnow 2019) are all published, and a model that knows them may reach for quartet consensus at once. What is not published is which loci to buy, that the free gene trees carry a systematic bias that also mimics the reticulation signature, and which worlds are reticulate. The ablation shows the score turns on combining the quartet insight with re-estimated gene trees, the right locus class and length, a refusal test and the budget rather than on recalling any one of them, and the shortcut probe bounds what a searcher gets from the free gene trees at 0.838 on the development split and 0.604 held out. No frontier draw has been run yet, so the difficulty at the frontier is not measured.
+lineage:
+  status: complete
+  builder_model_ids:
+  - claude-fable-5-1
+  builder_scaffolds:
+  - claude-code
+  calibrator_model_ids: []
+  calibration_runs: []
+  calibration_evidence_status: missing
+  edits_triggered_by_model: >-
+    No model has seen the task. Four edits came from the construction checkpoints. The first
+    two-fast-species worlds showed no long-branch attraction at all, because the fast species'
+    sisters were not short enough and the joining branch was not short; the worlds are now two
+    cherries joined by a short branch, and the attraction is measured at ten to thirty per cent of
+    fast-locus gene trees. At the first budget of 80 units no quartet strategy recovered any
+    anomaly-zone tree, and the refusal statistic did not separate the worlds; the budget is now 480
+    and the branches were lengthened until the reference reads them. One anomaly world at short
+    branches of 0.12 to 0.2 coalescent units was not anomalous by simulation; the range is now 0.1
+    to 0.16, verified on every world with one hundred thousand gene trees. At a budget of 400 the
+    reference lost one development world by 0.2 quartet votes out of 243 and a strategy in the
+    shortcut probe tied it on the development split at 0.779 against 0.774; the budget was raised
+    to 480, at which the reference recovers every tree world and leads the whole probe on both
+    splits.
+  shortcut_discoverer: builder_self_audit_with_a_low_dimensional_strategy_probe
+  frozen_before_eval: false
+  freeze_timestamp: null
+long_horizon:
+  status: not_tested
+  measurement_health_passed: false
+  material_headroom_after_2h: false
+  evidence: []
+construction_audit:
+  status: builder_audited_pending_external
+  author_domain: claude-fable-5-1
+  reviewer_domain: pending_external
+  expert_hours: null
+  red_team_rounds: 4
+  oracle_disagreement_status: not_quantified
+  independent_recomputation_status: the reference and the baseline are runnable from this directory, and the fifteen-rung ablation ladder, the 1260-strategy shortcut probe, the anomaly-zone rank check and the twenty bad-candidate shapes from the scripts in .research/anomaly_zone_species_tree; the sandbox evaluation of scripts/check_task_contribution.py and a frontier-model draw were not run because the task was built on a machine without a Linux sandbox or a model endpoint
