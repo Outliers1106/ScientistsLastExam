@@ -55,14 +55,18 @@ RATE_CLASSES = ("slow", "medium", "fast")
 CLASS_RATE = {"slow": 0.01, "medium": 0.03, "fast": 0.1}
 GAMMA_SHAPE = 0.5
 # Species-specific rate multipliers: every world carries mild heterogeneity, and the long-branch
-# worlds carry two species accelerated by this much.
+# worlds carry two species accelerated by this much. At five to eight times the rate the plain
+# Jukes-Cantor distance was biased only on fast loci, and only in some worlds; at ten to fifteen
+# times, on species branches of 0.4 to 0.7 coalescent units, the free gene trees join the two
+# fast species more often than the true gene trees do in every long-branch world and every rate
+# class, and the gamma-corrected distance removes most of that.
 MILD_RATE_SIGMA = 0.15
 ANOMALY_PAIR_MULTIPLIER = (2.0, 3.0)
-LONG_BRANCH_MULTIPLIER = (5.0, 8.0)
+LONG_BRANCH_MULTIPLIER = (10.0, 15.0)
 # Branch increments in coalescent units.
 SHORT_BRANCH = (0.1, 0.16)
 JOIN_BRANCH = (0.1, 0.2)
-CHERRY_HEIGHT = (0.2, 0.5)
+CHERRY_HEIGHT = (0.4, 0.7)
 MODERATE_BRANCH = (0.3, 0.8)
 RETICULATE_BRANCH = (0.25, 0.6)
 INHERITANCE = (0.35, 0.5)
@@ -348,7 +352,9 @@ def _metrics(world, splits, confidence, abstain):
         return blank
     truth = world["truth_splits"]
     if not msc.same_topology(splits, truth):
-        blank["false_discovery"] = confidence >= 0.5
+        # A wrong tree is a false discovery whatever the confidence; confidence only feeds the
+        # calibration axis, so a low confidence cannot buy a lower false discovery rate.
+        blank["false_discovery"] = True
         return blank
     branch = _branch_score(splits, truth)
     blank.update({"topology_correct": True, "branch_length_score": branch,

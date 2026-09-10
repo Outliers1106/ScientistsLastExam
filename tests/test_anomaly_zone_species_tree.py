@@ -4,8 +4,9 @@ The public score is mechanism, normalised so that declining every world is exact
 naming one fixed tree everywhere. A reticulate world is the unsupported case: declining it is
 correct, declining everything is not; a tree world is determinable and its tree is the answer.
 
-Two of these tests pin what the construction checkpoints found the hard way: that every tree world
-really is in the anomaly zone, and that the sequencing budget is not free.
+Three of these tests pin what the construction checkpoints and the first review found the hard
+way: that every anomaly-zone world really is in the anomaly zone, that the free gene trees really
+are biased in every long-branch world, and that the sequencing budget is not free.
 """
 from __future__ import annotations
 
@@ -47,20 +48,24 @@ class AnomalyZoneSpeciesTreeTests(unittest.TestCase):
             self.assertEqual(metrics["valid"], 1.0, submission)
             self.assertEqual(metrics["combined_score"], 0.0, submission)
             self.assertEqual(metrics["development_correct_refusal_rate"], 1.0, submission)
-        fixed = self.evaluator.evaluate(
-            lambda _p, _s: {"verdict": "tree", "newick": FIXED_TREE, "confidence": 0.9})
-        self.assertEqual(fixed["valid"], 1.0)
-        self.assertEqual(fixed["combined_score"], 0.0)
-        self.assertEqual(fixed["development_false_discovery_rate"], 1.0)
+        for confidence in (0.9, 0.2):
+            # A wrong tree is a false discovery whatever its confidence.
+            fixed = self.evaluator.evaluate(
+                lambda _p, _s, c=confidence: {"verdict": "tree", "newick": FIXED_TREE, "confidence": c})
+            self.assertEqual(fixed["valid"], 1.0, confidence)
+            self.assertEqual(fixed["combined_score"], 0.0, confidence)
+            self.assertEqual(fixed["development_false_discovery_rate"], 1.0, confidence)
 
-    def test_every_tree_world_is_in_the_anomaly_zone(self):
-        """The one property the task is built on. If the species tree were the most frequent gene
-        tree, majority vote and concatenation would work and the task would be a different task."""
+    def test_every_anomaly_world_is_in_the_anomaly_zone(self):
+        """The property the anomaly-zone worlds are built on. If the species tree were the most
+        frequent gene tree there, majority vote and concatenation would work on them. The
+        long-branch worlds are deliberately built outside the zone, with at most one short internal
+        branch, and are not covered here: their species tree is the most frequent gene tree."""
         ev = self.evaluator
         msc = sys.modules[ev.msc.__name__]
-        for spec in ev.DEVELOPMENT_WORLDS + ev.HELDOUT_WORLDS:
-            if spec["kind"] != "anomaly":
-                continue
+        anomaly = [spec for spec in ev.DEVELOPMENT_WORLDS + ev.HELDOUT_WORLDS if spec["kind"] == "anomaly"]
+        self.assertEqual(len(anomaly), 6)
+        for spec in anomaly:
             world = ev._world(spec)
             rng = np.random.default_rng(12345)
             counts = collections.Counter()
@@ -71,6 +76,38 @@ class AnomalyZoneSpeciesTreeTests(unittest.TestCase):
             top, top_count = counts.most_common(1)[0]
             self.assertNotEqual(top, truth, spec["seed"])
             self.assertLess(counts[truth], top_count, spec["seed"])
+
+    def test_the_free_gene_trees_are_biased_in_every_long_branch_world(self):
+        """Long-branch attraction by measurement: on medium loci the sequencing centre's plain
+        Jukes-Cantor tree joins the two fast species more often than the true gene tree of the
+        same locus does, in every long-branch world, and the gamma-corrected tree less often than
+        the free one. The true gene trees carry incomplete lineage sorting, so the excess over them,
+        not the raw rate, is the attraction."""
+        ev = self.evaluator
+        msc = sys.modules[ev.msc.__name__]
+        for spec in ev.DEVELOPMENT_WORLDS + ev.HELDOUT_WORLDS:
+            if spec["kind"] != "long_branch":
+                continue
+            world = ev._world(spec)
+            fast = sorted(range(ev.N_TAXA), key=lambda t: -world["multiplier"][t])[:2]
+            mask = msc.canonical_split((1 << fast[0]) | (1 << fast[1]))
+            loci = [row["locus"] for row in world["catalogue"]
+                    if row["rate_class"] == "medium" and row["sites"] == 800][:240]
+            true_hits = free_hits = corrected_hits = 0
+            for index in loci:
+                entry = world["catalogue"][index]
+                rng_tree = np.random.default_rng((world["seed"], 9, index))
+                gene_tree, scaled = msc.simulate_gene_tree(world["trees"][0], rng_tree, world["multiplier"])
+                rng_sites = np.random.default_rng((world["seed"], 11, index))
+                alignment = msc.simulate_alignment(gene_tree, scaled, ev.CLASS_RATE["medium"],
+                                                   entry["sites"], ev.GAMMA_SHAPE, rng_sites)
+                true_hits += mask in gene_tree.unrooted_splits()
+                free_hits += mask in msc.splits_of(msc.neighbour_joining(msc.jc_distances(alignment)))
+                corrected_hits += mask in msc.splits_of(msc.neighbour_joining(
+                    msc.jc_gamma_distances(alignment, ev.GAMMA_SHAPE)))
+            n = float(len(loci))
+            self.assertGreater((free_hits - true_hits) / n, 0.10, spec["seed"])
+            self.assertLess(corrected_hits, free_hits, spec["seed"])
 
     def test_the_sequencing_budget_is_not_free(self):
         """A quarter of the budget must be materially worse than all of it."""
