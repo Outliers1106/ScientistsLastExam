@@ -39,7 +39,7 @@ m = ev.evaluate(lambda p, s: {"verdict": "tree", "newick": "((A:1,B:1):0.1,(C:1,
 print("fixed tree:", m["valid"], m["combined_score"], m["development_false_discovery_rate"])
 # C. budget not free: reference restricted to 50 loci / 25 loci
 src = open(TASK + "/verification/reference_quartet_consensus.py").read()
-for n in (25, 50, 100):
+for n in (125, 250, 375):
     ns = {}; exec(compile(src.replace("    for row in chosen:\n", "    for row in chosen[:%d]:\n" % n), "ref_%d" % n, "exec"), ns)
     m = ev.evaluate(ns["infer_species_tree"])
     print("reference with %d loci: dev %.3f held %.3f topo %.2f refusal %.2f fdr %.2f" % (n, m["combined_score"], m["heldout_mechanism_score"], m["development_topology_rate"], m["development_correct_refusal_rate"], m["development_false_discovery_rate"]))

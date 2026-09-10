@@ -4,16 +4,24 @@ quartet frequencies, and decline when the minority quartets are too unequal for 
 
 Reads only the public problem and the budgeted sequencing campaign. The ideas it is built on:
 
-    loci        buy medium-rate loci of 800 sites. Slow loci leave a branch of a tenth of a
-                coalescent unit unresolved in most gene trees; fast loci resolve it and saturate
-                the long distances. The medium class is the compromise, and 800 sites at that
-                rate buys two hundred and forty loci, which is what the quartet frequencies need.
+    loci        buy slow loci of 800 sites. The slow class is the least saturated, so the gamma
+                correction has the least to repair there and its corrected trees recover the most
+                true splits per locus; 800 sites at cost two buys five hundred loci. An
+                anomaly-zone world needs that many: two hundred and forty true gene trees pick
+                its species tree only about nineteen times in twenty.
+    shape       the sites evolve with gamma-distributed rates whose shape is not published.
+                Pairwise comparisons cannot see it, so it is read from a joint statistic: the
+                share of sites that are constant across all eight sequences. For each candidate
+                shape, the distances are corrected with it, a tree is built, and the share of
+                constant sites that tree predicts under that shape (the gamma integral done by
+                generalised Gauss-Laguerre quadrature) is compared with the observed share,
+                pooled over the first sixty loci; the shape that matches is kept.
     gene trees  the oracle's neighbour-joining tree is discarded. It uses the plain Jukes-Cantor
-                distance, and the sites evolve with gamma-distributed rates of published shape,
-                so the distances are recomputed with the gamma correction and neighbour joining
-                is run again. Without this the two fast-evolving species attract each other,
-                and - worse - the attraction is a systematic imbalance between minority quartet
-                topologies, which is exactly the signature of reticulation.
+                distance, so the distances are recomputed with the gamma correction at the
+                estimated shape and neighbour joining is run again. Without this the two
+                fast-evolving species attract each other, and - worse - the attraction is a
+                systematic imbalance between minority quartet topologies, which is exactly the
+                signature of reticulation.
     topology    count the three topologies of every quartet across the gene trees and pick the
                 one of the 10395 unrooted eight-taxon trees that agrees with the most quartet
                 observations. No quartet is anomalous under the coalescent, so this is
@@ -39,9 +47,12 @@ import math
 
 import numpy as np
 
-CHOSEN_CLASS = "medium"
+CHOSEN_CLASS = "slow"
 CHOSEN_SITES = 800
-REFUSAL_STATISTIC = 115.0
+SHAPE_GRID = (0.15, 0.18, 0.22, 0.26, 0.31, 0.37, 0.44, 0.52, 0.62, 0.74, 0.88, 1.05, 1.25, 1.5, 1.8, 2.2)
+SHAPE_LOCI = 60
+QUADRATURE_NODES = 12
+REFUSAL_STATISTIC = 260.0
 MIN_LENGTH = 0.01
 PENDANT_LENGTH = 1.0
 SATURATED = 10.0
@@ -103,6 +114,80 @@ def _neighbour_joining(distance):
     adjacency[a].append((b, max(float(d[a, b]), 0.0)))
     adjacency[b].append((a, max(float(d[a, b]), 0.0)))
     return adjacency
+
+
+# ----------------------------------------------------------------------------------------------
+# the site-rate shape, from the share of constant sites
+# ----------------------------------------------------------------------------------------------
+
+def _gamma_quadrature(shape, nodes):
+    """Nodes and weights integrating f(r) against the Gamma(shape, 1/shape) density: generalised
+    Gauss-Laguerre with weight x^(shape-1) e^(-x), by the Golub-Welsch eigenvalue construction."""
+    beta = shape - 1.0
+    k = np.arange(nodes)
+    diagonal = 2.0 * k + beta + 1.0
+    off = np.sqrt((k[1:]) * (k[1:] + beta))
+    values, vectors = np.linalg.eigh(np.diag(diagonal) + np.diag(off, 1) + np.diag(off, -1))
+    weights = vectors[0] ** 2  # already normalised so the weights sum to one
+    return values / shape, weights
+
+
+def _constant_site_probability(adjacency, shape):
+    """Probability under Jukes-Cantor with gamma rates of the given shape that a site is the same
+    nucleotide in all N leaves of the tree, by pruning at every quadrature node."""
+    rates, weights = _gamma_quadrature(shape, QUADRATURE_NODES)
+    root = max(adjacency)
+    order = []
+    stack = [(root, None)]
+    while stack:
+        node, parent = stack.pop()
+        order.append((node, parent))
+        for nbr, _ in adjacency[node]:
+            if nbr != parent:
+                stack.append((nbr, node))
+    lengths = {}
+    for node, parent in order:
+        if parent is not None:
+            lengths[node] = next(length for nbr, length in adjacency[node] if nbr == parent)
+    total = 0.0
+    for rate, weight in zip(rates, weights):
+        # partial[node] = (same, other): probability of the all-A pattern below the node given the
+        # node is A, and given it is one of the three other states.
+        partial = {}
+        for node, parent in reversed(order):
+            if node < N:
+                partial[node] = (1.0, 0.0)
+            else:
+                same = other = 1.0
+                for nbr, length in adjacency[node]:
+                    if nbr == parent:
+                        continue
+                    kid_same, kid_other = partial[nbr]
+                    e = math.exp(-4.0 / 3.0 * max(length, 0.0) * rate)
+                    p_stay = 0.25 + 0.75 * e
+                    p_move = 0.25 - 0.25 * e
+                    same *= p_stay * kid_same + 3.0 * p_move * kid_other
+                    other *= p_move * kid_same + (p_stay + 2.0 * p_move) * kid_other
+                partial[node] = (same, other)
+        root_same, root_other = partial[root]
+        total += weight * (0.25 * root_same + 0.75 * root_other)
+    return 4.0 * total
+
+
+def _estimate_shape(loci):
+    """The grid shape whose corrected-distance trees predict the observed share of constant sites."""
+    observed = sum(int(np.sum(np.all(seqs == seqs[0], axis=0))) for seqs in loci)
+    sites = sum(seqs.shape[1] for seqs in loci)
+    best, best_error = SHAPE_GRID[0], math.inf
+    for shape in SHAPE_GRID:
+        predicted = 0.0
+        for seqs in loci:
+            adjacency = _neighbour_joining(_gamma_distances(seqs, shape))
+            predicted += _constant_site_probability(adjacency, shape) * seqs.shape[1]
+        error = abs(math.log(max(predicted, 1e-9) / max(float(observed), 1e-9)))
+        if error < best_error:
+            best, best_error = shape, error
+    return best, observed / float(sites), best_error
 
 
 # ----------------------------------------------------------------------------------------------
@@ -236,20 +321,20 @@ def _render(edges, lengths, labels):
 # the candidate
 # ----------------------------------------------------------------------------------------------
 
+# Only world-independent quantities may be cached here: the 10395 trees and their quartet table.
+# Anything read from a world (loci, shape, counts) must stay local to one call.
 _CACHE = {}
 
 
 def infer_species_tree(problem, sequence):
     taxa = list(problem["taxa"])
-    shape = float(problem["gamma_shape"])
     budget = int(problem["locus_budget"])
     catalogue = problem["catalogue"]
 
     chosen = [row for row in catalogue
               if row["rate_class"] == CHOSEN_CLASS and int(row["sites"]) == CHOSEN_SITES]
     spent = 0
-    counts = np.zeros((len(QUARTETS), 3))
-    loci = 0
+    bought = []
     for row in chosen:
         cost = int(row["cost"])
         if spent + cost > budget:
@@ -259,15 +344,18 @@ def infer_species_tree(problem, sequence):
         except Exception:
             break
         spent += cost
-        seqs = _encode(locus["alignment"], taxa)
+        bought.append(_encode(locus["alignment"], taxa))
+    if not bought:
+        return {"verdict": "reticulate", "confidence": 0.1}
+
+    shape, _observed, _error = _estimate_shape(bought[:SHAPE_LOCI])
+    counts = np.zeros((len(QUARTETS), 3))
+    for seqs in bought:
         splits = _splits(_neighbour_joining(_gamma_distances(seqs, shape)))
         for q, quartet in enumerate(QUARTETS):
             topology = _quartet_topology(splits, quartet)
             if topology >= 0:
                 counts[q, topology] += 1
-        loci += 1
-    if loci == 0:
-        return {"verdict": "reticulate", "confidence": 0.1}
 
     # Refusal: minority imbalance summed over the quartets containing each species.
     ordered = np.sort(counts, axis=1)[:, ::-1]

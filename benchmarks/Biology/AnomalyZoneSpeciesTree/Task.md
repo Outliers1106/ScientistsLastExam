@@ -19,6 +19,13 @@
   task recovers the branching order of eight species, where the coalescent is the reason the
   gene trees disagree with the answer.
 
+- **`Microbiology/MetagenomeCompositionAssignment`** also buys sequencing under a budget and
+  also declines when the data cannot be explained. Its object is a composition vector over a
+  fixed reference library of marker profiles, and it declines when that library cannot explain
+  the counts. Here the object is a tree, the loci disagree because of the coalescent and not
+  because of a library, and the refusal comes from an asymmetry between minority quartet
+  topologies that no tree can produce.
+
 No task in the Frontier-Eng catalogue concerns phylogenetics, the multispecies coalescent or
 species-tree estimation.
 
@@ -47,15 +54,20 @@ hybrid.
   gene-tree quartet under any branch lengths, and how probable depends only on the length of the
   internal path between the two pairs.
 - **Two species evolve fast, and the free gene trees join them.** Two non-adjacent species carry a
-  rate multiplier that is not published. Sites evolve with gamma-distributed rates of the
-  published shape, and the sequencing centre's tree uses the plain Jukes-Cantor distance, which
-  ignores that. The omission compresses long distances more than short ones, so the two long
-  branches are drawn together: long-branch attraction, in its distance-method form. Measured
-  against the true gene trees of the same loci, the free trees join the two fast species more
-  often by 6 to 29 percentage points on slow loci, 16 to 62 on medium loci and 19 to 72 on fast
-  loci, in every such world. The bias is present in every rate class and grows with the rate, and
-  averaging the uncorrected distances over loci does not remove it, because it is a bias and not
-  noise.
+  rate multiplier that is not published. Sites evolve with gamma-distributed rates whose shape
+  lies between 0.2 and 1 and is not published either, and the sequencing centre's tree uses the
+  plain Jukes-Cantor distance, which ignores that. The omission compresses long distances more
+  than short ones, so the two long branches are drawn together: long-branch attraction, in its
+  distance-method form. Measured against the true gene trees of the same loci, the free trees
+  join the two fast species more often by 11 to 64 percentage points on slow loci, 23 to 70 on
+  medium loci and 28 to 71 on fast loci, in every such world. The bias is present in every rate
+  class and grows with the rate, and averaging the uncorrected distances over loci does not
+  remove it, because it is a bias and not noise. Correcting the distances at a guessed shape does
+  not remove it either: the shapes of the worlds are spread over a factor of five, gene trees
+  corrected at the wrong shape carry an imbalance of their own that names the wrong tree or
+  reads as a hybrid, and no single guess reads more than two of the four long-branch worlds of
+  the development split, or more than six of its eight tree worlds. The shape has to be
+  estimated from the alignments, and pairwise distances alone cannot see it.
 - **A hybrid species has no species tree.** In some worlds one species descends from two parents,
   and each locus follows one parent or the other with a fixed inheritance probability. Under any
   species tree the two minority topologies of a quartet are equally probable; a hybrid makes them
@@ -64,7 +76,9 @@ hybrid.
   own that mimics it.
 - **Short branches cost loci.** The shortest internal branches are a tenth of a coalescent unit.
   The quartet signal for such a branch is a few per cent of the gene trees, so it takes hundreds
-  of loci to read it, and a locus of three hundred slow sites often does not resolve it at all.
+  of loci to read it: over the six anomaly-zone worlds, exhaustive quartet consensus on 240 of
+  the true gene trees names the species tree 94 to 99 times in a hundred, and on 500 of them
+  every time. A locus of three hundred slow sites often does not resolve such a branch at all.
   The catalogue prices length, not rate class, and the budget buys a fraction of what is on offer.
 
 The reticulate world is the declining case. A tree world is determinable, and declining it is a
@@ -72,10 +86,10 @@ false discovery: it claims a mechanism, hybridisation, that is not there.
 
 ## Where the budget actually goes
 
-The budget is 480 units. A locus of 300 sites costs 1, of 800 sites 2, of 2000 sites 5, so the
-whole budget is 480 short loci, 240 medium ones or 96 long ones, in any mixture. The catalogue
-holds 300 loci of each rate class and length, 2700 in all. Halving the reference's spend costs it
-0.35 of the score and a quarter of the budget scores zero on the development split, so the
+The budget is 1000 units. A locus of 300 sites costs 1, of 800 sites 2, of 2000 sites 5, so the
+whole budget is 1000 short loci, 500 medium ones or 200 long ones, in any mixture. The catalogue
+holds 500 loci of each rate class and length, 4500 in all. Halving the reference's spend costs it
+0.14 of the score and a quarter of the budget 0.54 on the development split, so the
 question is not whether to spend but on what: rate class decides whether the short branches are
 resolved and whether the long ones are distorted, and length decides how many independent draws
 of the coalescent you see.
@@ -93,11 +107,10 @@ def infer_species_tree(problem, sequence):
 | key | meaning |
 |---|---|
 | `taxa` | the eight species names, `A` to `H` |
-| `locus_budget` | how many cost units you may spend on this world (480) |
+| `locus_budget` | how many cost units you may spend on this world (1000) |
 | `catalogue` | one entry per locus on offer: `{"locus", "sites", "rate_class", "cost"}`; `locus` is the integer you pass to `sequence`, `sites` is 300, 800 or 2000, `rate_class` is `slow`, `medium` or `fast`, `cost` is 1, 2 or 5 |
-| `gamma_shape` | shape of the gamma distribution of site rates (0.5) |
 | `coalescent_model` | prose: one lineage per species, independent loci under the multispecies coalescent, branch lengths in coalescent units |
-| `sequence_model` | prose: Jukes-Cantor with gamma-distributed site rates, three rate classes a factor of three and ten apart, and unpublished per-species rate multipliers |
+| `sequence_model` | prose: Jukes-Cantor with gamma-distributed site rates of an unpublished shape between 0.2 and 1, three rate classes about a factor of three apart, and unpublished per-species rate multipliers |
 | `gene_tree_estimate` | prose: what `nj_tree` is and what it does not correct for |
 | `reticulation_model` | prose: one hybrid species with a fixed inheritance probability, in some worlds |
 | `abstain_when` | prose: when the verdict is `reticulate` |
@@ -157,38 +170,53 @@ Ablating the reference, one choice changed at a time:
 
 | strategy | score | topology | branch lengths | false discovery | refusal | coverage | held out |
 |---|---|---|---|---|---|---|---|
-| gamma-corrected distance gene trees from 240 medium loci, quartet consensus, quartet-frequency lengths, minority-imbalance refusal | **0.873** | 1.00 | 0.75 | 0.00 | 1.00 | 1.00 | 0.929 |
-| same, but the sequencing centre's uncorrected gene trees | 0.316 | 0.38 | 0.26 | 0.42 | 1.00 | 0.38 | 0.467 |
-| same, slow loci instead of medium | 0.891 | 1.00 | 0.78 | 0.00 | 1.00 | 1.00 | 0.662 |
-| same, fast loci instead of medium | 0.639 | 0.88 | 0.65 | 0.17 | 0.75 | 1.00 | 0.854 |
-| same, 300-site loci (all 300 of them) instead of 800 | 0.405 | 0.62 | 0.44 | 0.33 | 0.75 | 1.00 | 0.839 |
-| same, 2000-site loci (96 of them) instead of 800 | 0.293 | 0.62 | 0.46 | 0.42 | 0.50 | 1.00 | 0.623 |
-| same, never declining | 0.373 | 1.00 | 0.75 | 0.33 | 0.00 | 1.00 | 0.429 |
-| same, constant branch lengths of 0.1 | 0.743 | 1.00 | 0.49 | 0.00 | 1.00 | 1.00 | 0.701 |
-| same, greedy consensus of the gene trees instead of quartets | 0.448 | 0.50 | 0.40 | 0.33 | 1.00 | 1.00 | 0.694 |
-| same, half the budget | 0.528 | 0.88 | 0.68 | 0.25 | 0.50 | 1.00 | 0.916 |
-| same, a quarter of the budget | 0.000 | 0.50 | 0.36 | 0.67 | 0.00 | 1.00 | 0.626 |
-| uncorrected gene trees and fast loci | 0.100 | 0.25 | 0.20 | 0.58 | 0.75 | 0.38 | 0.223 |
-| uncorrected gene trees, never declining | 0.000 | 0.38 | 0.26 | 0.75 | 0.00 | 1.00 | 0.000 |
+| gamma-corrected distance gene trees from 500 slow loci of 800 sites at a site-rate shape estimated from the alignments, quartet consensus, quartet-frequency lengths, minority-imbalance refusal | **0.912** | 1.00 | 0.82 | 0.00 | 1.00 | 1.00 | 0.903 |
+| same, but the sequencing centre's uncorrected gene trees | 0.111 | 0.12 | 0.10 | 0.58 | 1.00 | 0.12 | 0.225 |
+| same, shape fixed at 0.5 instead of estimated | 0.575 | 0.62 | 0.52 | 0.25 | 1.00 | 0.75 | 0.685 |
+| same, shape fixed at 0.2 | 0.450 | 0.50 | 0.40 | 0.33 | 1.00 | 0.50 | 0.437 |
+| same, shape fixed at 1.0 | 0.446 | 0.50 | 0.39 | 0.33 | 1.00 | 0.50 | 0.465 |
+| same, shape estimated from 20 loci instead of 60 | 0.913 | 1.00 | 0.83 | 0.00 | 1.00 | 1.00 | 0.906 |
+| same, the true shape (an oracle no candidate has) | 0.918 | 1.00 | 0.84 | 0.00 | 1.00 | 1.00 | 0.902 |
+| same, medium loci instead of slow | 0.648 | 0.75 | 0.55 | 0.17 | 1.00 | 1.00 | 0.668 |
+| same, fast loci instead of slow | 0.320 | 0.38 | 0.26 | 0.42 | 1.00 | 0.62 | 0.632 |
+| same, 300-site loci (all 500 of them) instead of 800 | 0.749 | 0.88 | 0.62 | 0.08 | 1.00 | 1.00 | 0.826 |
+| same, 2000-site loci (200 of them) instead of 800 | 0.567 | 0.75 | 0.63 | 0.25 | 0.75 | 1.00 | 0.879 |
+| same, never declining | 0.412 | 1.00 | 0.82 | 0.33 | 0.00 | 1.00 | 0.403 |
+| same, greedy consensus of the gene trees instead of quartets | 0.457 | 0.50 | 0.41 | 0.33 | 1.00 | 1.00 | 0.664 |
+| same, one neighbour joining on the mean corrected distance instead of quartets | 0.800 | 0.88 | 0.73 | 0.08 | 1.00 | 1.00 | 0.664 |
+| same, constant branch lengths of 0.1 | 0.728 | 1.00 | 0.46 | 0.00 | 1.00 | 1.00 | 0.692 |
+| same, half the budget | 0.776 | 1.00 | 0.80 | 0.08 | 0.75 | 1.00 | 0.659 |
+| same, a quarter of the budget | 0.369 | 1.00 | 0.74 | 0.33 | 0.00 | 1.00 | 0.158 |
+| uncorrected gene trees and fast loci | 0.000 | 0.00 | 0.00 | 0.67 | 1.00 | 0.00 | 0.000 |
+| uncorrected gene trees, never declining | 0.000 | 0.25 | 0.18 | 0.83 | 0.00 | 1.00 | 0.000 |
 | concatenation of the longest fast loci, plain Jukes-Cantor, never declining (baseline) | 0.000 | 0.00 | 0.00 | 1.00 | 0.00 | 1.00 | 0.000 |
 | declining everything | 0.000 | — | — | 0.67 | 1.00 | 0.00 | 0.000 |
 
-Every row costs something real: trusting the free gene trees costs 0.56, never declining 0.50,
-greedy consensus 0.42, the wrong locus length 0.47 or 0.58, fast loci 0.23, half the budget 0.35,
-and constant branch lengths 0.13. Slow loci gain 0.02 on the development split and lose 0.27 held
-out, which is why the reference does not use them. The reference's branch-length score is 0.75,
-because it inverts the quartet frequencies without correcting for gene-tree estimation error, and
-that is where most of what remains lives.
+Every row costs something real: trusting the free gene trees costs 0.80, a guessed shape 0.34 to
+0.47, never declining 0.50, greedy consensus 0.46, medium loci 0.26, fast loci 0.59, the wrong
+locus length 0.16 or 0.35, half the budget 0.14, a quarter 0.54 and constant branch lengths 0.18.
+The mean corrected distance is a consistent estimator here and loses 0.11 on the development
+split and 0.24 held out: quartet consensus buys statistical efficiency on the short branches, not
+consistency. The shape estimate is within ten per cent of the truth on every world, and the true
+shape gains 0.006. The reference's branch-length score is 0.82, because it inverts the quartet
+frequencies without correcting for gene-tree estimation error, and that is where most of what
+remains lives.
 
-**Low-dimensional shortcuts do not solve this task.** A sweep of 1260 strategies that take the
-sequencing centre's gene trees as given, choose one catalogue cell, build the topology by greedy
-consensus, the most frequent gene tree, neighbour joining on the mean distance or quartet
-consensus, decline on a discordance or imbalance threshold or never, and set the branch lengths to
-a constant or from the quartet frequencies, reaches **0.512** on the development split and 0.197
-held out, against the reference's 0.873 and 0.929 and a ceiling of 1.0. The best of them averages
-the uncorrected distances over slow loci and names the wrong tree in five of the six long-branch
-worlds. Without quartet consensus and quartet lengths the best is 0.500 and 0.190; on fast loci
-0.331; never declining 0.059.
+**Low-dimensional shortcuts do not solve this task.** A sweep of 102060 strategies was scored on
+the loci a candidate would buy: the gene trees taken as the sequencing centre gives them, or
+re-estimated by neighbour joining on the gamma-corrected distance at a guessed shape of 0.2,
+0.35, 0.5, 0.7 or 1.0, or, as an oracle no candidate has, at the world's true shape; one
+catalogue cell for the whole budget, or one cell for the topology and another for the refusal
+and the lengths; topology by greedy consensus, the most frequent gene tree, neighbour joining on
+the mean distance or quartet consensus; refusal never, on a discordance threshold or on the
+minority-imbalance statistic at five levels; branch lengths constant or from the quartet
+frequencies. Without the true shape the best of them reaches **0.780** on the development split
+and 0.644 held out, against the reference's 0.912 and 0.903 and a ceiling of 1.0; on the free
+gene trees the best is 0.319 and 0.215. The best guess averages corrected distances at a shape of
+0.5, which reads the worlds whose shape is near 0.5 and over- or under-corrects the rest. With
+the true shape the same averaging reaches 0.910 and quartet consensus 0.918, so what stands
+between a searcher and the reference is estimating the shape, not knowing the name of the
+method.
 
 ## Rules
 

@@ -4,6 +4,8 @@ OUT = _tempfile.gettempdir()
 import sys, time, importlib.util, json
 sys.path.insert(0, TASK + "/verification")
 import evaluator as ev
+if _os.environ.get("AZ_PATCH"):
+    sys.path.insert(0, _os.path.dirname(_os.environ["AZ_PATCH"])); import patch; print("patch:", patch.apply(ev), flush=True)
 def load(path, name):
     spec = importlib.util.spec_from_file_location(name, path); m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m); return m
 ref = load(TASK + "/verification/reference_quartet_consensus.py", "ref")

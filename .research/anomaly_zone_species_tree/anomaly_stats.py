@@ -8,6 +8,8 @@ OUT = _tempfile.gettempdir()
 import sys, collections, numpy as np
 sys.path.insert(0, TASK + "/verification")
 import evaluator as ev, msc
+if _os.environ.get("AZ_PATCH"):
+    sys.path.insert(0, _os.path.dirname(_os.environ["AZ_PATCH"])); import patch; print("patch:", patch.apply(ev), flush=True)
 N = int(_os.environ.get("AZ_N", "100000")); SEED = 5
 ONLY = _os.environ.get("AZ_ONLY")
 print("N = %d gene trees per world, rng seed %d; se is that of p_top - p_species under the multinomial" % (N, SEED))
@@ -25,3 +27,6 @@ for split, specs in (("development", ev.DEVELOPMENT_WORLDS), ("heldout", ev.HELD
         rank = sorted(ctr.values(), reverse=True).index(ctr[truth]) + 1
         print("  %-11s %-11s %d  p_species %.4f  p_top %.4f  diff %+.4f  se %.4f  diff/se %5.1f  rank %d  distinct %d" % (
             split, spec["kind"], spec["seed"], p_sp, p_top, p_top - p_sp, se, (p_top - p_sp) / se, rank, len(ctr)), flush=True)
+        # The most frequent topology, for the test that compares the species tree against a
+        # competitor fixed in advance rather than against the empirical maximum.
+        print("      most frequent: %s" % msc.splits_to_newick({m: 1.0 for m in top_key}), flush=True)

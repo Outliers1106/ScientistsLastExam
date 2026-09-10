@@ -14,13 +14,17 @@ Three things make this hard, and every world carries at least one of them:
                          converge on the wrong tree (Kubatko and Degnan 2007). Quartets are the
                          way out: no quartet is ever anomalous (Allman, Degnan and Rhodes 2011),
                          so a tree assembled from quartet majorities is consistent.
-    long-branch attraction  two species evolve several times faster than the rest. Sites evolve
-                         with gamma-distributed rates, and the gene-tree estimate that comes free
-                         with every locus is neighbour joining on the plain Jukes-Cantor distance,
-                         which omits the gamma correction. The omitted correction compresses the
-                         longest distances most, and the two fast species are pulled together
-                         (Felsenstein 1978). The bias grows with the substitution rate of the
-                         locus: a fast locus has more variable sites and a worse tree.
+    long-branch attraction  two species evolve an order of magnitude faster than the rest.
+                         Sites evolve with gamma-distributed rates of an unpublished shape, and
+                         the gene-tree estimate that comes free with every locus is neighbour
+                         joining on the plain Jukes-Cantor distance, which omits the gamma
+                         correction. The omitted correction compresses the longest distances
+                         most, and the two fast species are pulled together (Felsenstein 1978).
+                         The bias grows with the substitution rate of the locus, and the
+                         correction that removes it needs the shape, which has to be estimated
+                         from the alignments: the shapes of a split are spread over a factor of
+                         five, so no single guess reads more than two of the four long-branch
+                         worlds of a split.
     reticulation         one species descends from two parents, each locus following one of them.
                          Every gene tree is a perfectly good tree; what no species tree can
                          produce is the quartet spectrum, in which the two minority topologies of
@@ -44,16 +48,22 @@ import msc  # noqa: E402
 
 TAXA = msc.TAXA
 N_TAXA = msc.N_TAXA
-DEVELOPMENT_BUDGET = 480
-HELDOUT_BUDGET = 480
-CATALOGUE_SIZE = 2700
+DEVELOPMENT_BUDGET = 1000
+HELDOUT_BUDGET = 1000
+CATALOGUE_SIZE = 4500
 LOCUS_SITES = (300, 800, 2000)
 LOCUS_COST = {300: 1, 800: 2, 2000: 5}
 RATE_CLASSES = ("slow", "medium", "fast")
-# Substitutions per site per coalescent unit for each class. A slow locus barely resolves a
-# branch of a tenth of a coalescent unit; a fast one resolves it and saturates the long distances.
-CLASS_RATE = {"slow": 0.01, "medium": 0.03, "fast": 0.1}
-GAMMA_SHAPE = 0.5
+# Substitutions per site per coalescent unit for each class. Even the slow class puts the two
+# fast species of a long-branch world a quarter of the way to saturation, so no class escapes the
+# site-rate correction; the fast class saturates the long distances outright.
+CLASS_RATE = {"slow": 0.03, "medium": 0.1, "fast": 0.3}
+# Sites evolve with gamma-distributed rates. The shape differs between worlds and is not
+# published: within each kind of world the shapes of a split cover this range on a log-spaced
+# grid (see _assign_shapes), so a candidate that corrects its distances has to estimate the shape
+# from the alignments; one guessed shape reads at most two of the four long-branch worlds of a
+# split.
+SHAPE_RANGE = (0.2, 1.0)
 # Species-specific rate multipliers: every world carries mild heterogeneity, and the long-branch
 # worlds carry two species accelerated by this much. At five to eight times the rate the plain
 # Jukes-Cantor distance was biased only on fast loci, and only in some worlds; at ten to fifteen
@@ -61,15 +71,18 @@ GAMMA_SHAPE = 0.5
 # fast species more often than the true gene trees do in every long-branch world and every rate
 # class, and the gamma-corrected distance removes most of that.
 MILD_RATE_SIGMA = 0.15
-ANOMALY_PAIR_MULTIPLIER = (2.0, 3.0)
+# The anomaly-zone worlds accelerate one non-adjacent pair by this much: enough that a wrong
+# site-rate shape biases their gene trees too, not enough to pull the pair together once the
+# shape is right.
+ANOMALY_PAIR_MULTIPLIER = (4.0, 6.0)
 LONG_BRANCH_MULTIPLIER = (10.0, 15.0)
 # Branch increments in coalescent units.
 SHORT_BRANCH = (0.1, 0.16)
-JOIN_BRANCH = (0.1, 0.2)
+JOIN_BRANCH = (0.15, 0.25)
 CHERRY_HEIGHT = (0.4, 0.7)
 MODERATE_BRANCH = (0.3, 0.8)
-RETICULATE_BRANCH = (0.25, 0.6)
-INHERITANCE = (0.35, 0.5)
+RETICULATE_BRANCH = (0.35, 0.6)
+INHERITANCE = (0.4, 0.5)
 # Estimated internal branch lengths are scored on a log scale: exp(-|ln(est/true)|).
 MIN_BRANCH = 1e-3
 
@@ -220,13 +233,15 @@ def _world(spec):
                "reticulate": _reticulate_world}[kind]
     world = builder(rng)
     world.update({"kind": kind, "seed": spec["seed"], "budget": int(spec["budget"]),
-                  "catalogue": _catalogue()})
+                  "catalogue": _catalogue(), "shape": float(spec["shape"])})
     world["truth_splits"] = world["trees"][0].unrooted_splits() if kind != "reticulate" else None
     return world
 
 
-def _locus(world, index):
-    """Simulate one locus: its gene tree under the (network) coalescent, then its alignment."""
+def _simulate(world, index):
+    """One locus: its gene tree under the (network) coalescent and its alignment under the world's
+    site-rate shape. Returns the gene tree, its scaled branch lengths and the alignment; the free
+    tree and the public row are built from these in `_locus`."""
     entry = world["catalogue"][index]
     rng_tree = np.random.default_rng((world["seed"], 9, index))
     if len(world["trees"]) == 1 or rng_tree.random() < world["gamma"]:
@@ -236,7 +251,14 @@ def _locus(world, index):
     gene_tree, scaled = msc.simulate_gene_tree(species, rng_tree, world["multiplier"])
     rng_sites = np.random.default_rng((world["seed"], 11, index))
     alignment = msc.simulate_alignment(gene_tree, scaled, CLASS_RATE[entry["rate_class"]],
-                                       entry["sites"], GAMMA_SHAPE, rng_sites)
+                                       entry["sites"], world["shape"], rng_sites)
+    return gene_tree, scaled, alignment
+
+
+def _locus(world, index):
+    """Simulate one locus and package it as the candidate sees it."""
+    entry = world["catalogue"][index]
+    gene_tree, scaled, alignment = _simulate(world, index)
     nj = msc.neighbour_joining(msc.jc_distances(alignment))
     rows = msc.to_strings(alignment)
     return {"locus": index, "sites": entry["sites"], "rate_class": entry["rate_class"],
@@ -276,17 +298,18 @@ PUBLIC_PROBLEM = {
     "taxa": list(TAXA),
     "locus_budget": DEVELOPMENT_BUDGET,
     "catalogue": None,
-    "gamma_shape": GAMMA_SHAPE,
     "coalescent_model": "one lineage is sampled from each of the eight species; every locus "
                         "is an independent draw of a gene tree under the multispecies coalescent "
                         "on the species tree, with branch lengths measured in coalescent units "
                         "and equal population sizes throughout, so incomplete lineage sorting "
                         "makes gene trees disagree with the species tree and with each other",
     "sequence_model": "along its gene tree each locus evolves under Jukes-Cantor with "
-                      "gamma-distributed rate variation across sites of shape gamma_shape; loci "
-                      "fall into three classes, slow, medium and fast, whose substitution rates "
-                      "per coalescent unit differ by factors of three and ten, and some species "
-                      "evolve faster than others by a factor that is not published",
+                      "gamma-distributed rate variation across sites; the shape of that gamma "
+                      "distribution is the same for every locus of a world, lies between 0.2 "
+                      "and 1, and is not published; loci fall into three classes, slow, medium "
+                      "and fast, whose substitution rates per coalescent unit differ by about "
+                      "a factor of three from class to class, and some species evolve faster "
+                      "than others by a factor that is not published",
     "gene_tree_estimate": "each purchase also returns nj_tree, an unrooted gene tree estimated by "
                           "neighbour joining on the plain Jukes-Cantor distance between the "
                           "sequences, without any correction for rate variation across sites; "
@@ -385,6 +408,23 @@ HELDOUT_WORLDS = (
     {"kind": "reticulate", "seed": 82410205, "budget": HELDOUT_BUDGET},
     {"kind": "reticulate", "seed": 82410206, "budget": HELDOUT_BUDGET},
 )
+
+
+
+def _assign_shapes(specs, seed):
+    """The site-rate shapes of a split: within each kind of world they are a log-spaced grid over
+    SHAPE_RANGE, assigned in an order fixed by the seed, so that no single guessed shape fits
+    most of the tree worlds of a split by chance."""
+    for kind in WORLD_KINDS:
+        members = [spec for spec in specs if spec["kind"] == kind]
+        grid = np.exp(np.linspace(math.log(SHAPE_RANGE[0]), math.log(SHAPE_RANGE[1]), len(members)))
+        order = np.random.default_rng(seed + WORLD_KINDS.index(kind)).permutation(len(members))
+        for spec, position in zip(members, order):
+            spec["shape"] = float(grid[position])
+
+
+_assign_shapes(DEVELOPMENT_WORLDS, 71300100)
+_assign_shapes(HELDOUT_WORLDS, 82410200)
 
 ROW_KEYS = ("topology_correct", "branch_length_score", "mechanism_score", "false_discovery",
             "correct_refusal")

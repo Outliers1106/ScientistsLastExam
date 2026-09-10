@@ -1,6 +1,6 @@
 """Long-branch attraction, measured the right way: for each long-branch world and rate class, the
 share of gene trees that join the two fast species in the true gene trees, in the sequencing
-centre's plain Jukes-Cantor trees and in gamma-corrected trees; the excess of the estimated trees
+centre's plain Jukes-Cantor trees and in trees corrected at the world's true shape; the excess of the estimated trees
 over the truth is the attraction. Also the minority-imbalance statistic on free versus corrected
 trees across all worlds, whether neighbour joining on the mean distance recovers the species tree,
 and the per-locus recall of the true gene tree's splits."""
@@ -10,17 +10,14 @@ OUT = _tempfile.gettempdir()
 import sys, time, numpy as np
 sys.path.insert(0, TASK + "/verification")
 import evaluator as ev, msc
+if _os.environ.get("AZ_PATCH"):
+    sys.path.insert(0, _os.path.dirname(_os.environ["AZ_PATCH"])); import patch; print("patch:", patch.apply(ev), flush=True)
 WORLDS = [("dev", s) for s in ev.DEVELOPMENT_WORLDS] + [("held", s) for s in ev.HELDOUT_WORLDS]
 CELLS = [("slow", 300), ("slow", 800), ("medium", 800), ("fast", 800)]
 
 def locus(w, index):
-    entry = w["catalogue"][index]
-    rng_tree = np.random.default_rng((w["seed"], 9, index))
-    species = w["trees"][0] if (len(w["trees"]) == 1 or rng_tree.random() < w["gamma"]) else w["trees"][1]
-    gene_tree, scaled = msc.simulate_gene_tree(species, rng_tree, w["multiplier"])
-    rng_sites = np.random.default_rng((w["seed"], 11, index))
-    aln = msc.simulate_alignment(gene_tree, scaled, ev.CLASS_RATE[entry["rate_class"]], entry["sites"], ev.GAMMA_SHAPE, rng_sites)
-    d = msc.jc_distances(aln); dg = msc.jc_gamma_distances(aln, ev.GAMMA_SHAPE)
+    gene_tree, scaled, aln = ev._simulate(w, index)
+    d = msc.jc_distances(aln); dg = msc.jc_gamma_distances(aln, w["shape"])
     return gene_tree.unrooted_splits(), msc.splits_of(msc.neighbour_joining(d)), msc.splits_of(msc.neighbour_joining(dg)), d, dg
 
 def counts_of(splits_list):

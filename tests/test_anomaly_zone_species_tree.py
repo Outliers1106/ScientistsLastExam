@@ -4,13 +4,16 @@ The public score is mechanism, normalised so that declining every world is exact
 naming one fixed tree everywhere. A reticulate world is the unsupported case: declining it is
 correct, declining everything is not; a tree world is determinable and its tree is the answer.
 
-Three of these tests pin what the construction checkpoints and the first review found the hard
-way: that every anomaly-zone world really is in the anomaly zone, that the free gene trees really
-are biased in every long-branch world, and that the sequencing budget is not free.
+Five of these tests pin what the construction checkpoints and the two reviews found the hard
+way: that every anomaly-zone world really is in the anomaly zone, measured against a competitor
+topology fixed in advance; that the free gene trees really are biased in every long-branch world;
+that the sequencing budget is not free; that the unpublished site-rate shape can be estimated from
+the alignments; and that guessing it instead costs a third of the score.
 """
 from __future__ import annotations
 
 import collections
+import re
 import importlib.util
 import json
 import sys
@@ -25,6 +28,24 @@ sys.path.insert(0, str(ROOT))
 TASK = ROOT / "benchmarks/Biology/AnomalyZoneSpeciesTree"
 
 FIXED_TREE = "((A:1,B:1):0.1,(C:1,D:1):0.1,((E:1,F:1):0.1,(G:1,H:1):0.1):0.1);"
+
+# The most frequent gene-tree topology of each anomaly-zone world, found from 100000 simulated
+# gene trees (rng seed 5, .research/anomaly_zone_species_tree/anomaly_stats.py) and fixed here so
+# that the test below compares the species tree against a competitor named in advance rather than
+# against the empirical maximum, which is biased upwards.
+def _with_unit_lengths(newick):
+    """The competitors are written as bare topologies; the parser wants a length on every branch."""
+    return re.sub(r"\)(?=[,)])", "):1", re.sub(r"([A-H])", r"\1:1", newick))
+
+
+ANOMALY_COMPETITORS = {
+    71300101: "(G,((F,H),(C,(B,E))),(A,D));",
+    71300102: "((F,H),(E,(D,(C,G))),(A,B));",
+    71300103: "(E,(H,((C,G),(D,F))),(A,B));",
+    71300104: "((E,H),(D,G),(A,(C,(B,F))));",
+    82410201: "(G,((C,D),(E,(B,H))),(A,F));",
+    82410202: "((B,(E,H)),(G,(C,F)),(A,D));",
+}
 
 
 def _load(path, name):
@@ -59,30 +80,35 @@ class AnomalyZoneSpeciesTreeTests(unittest.TestCase):
     def test_every_anomaly_world_is_in_the_anomaly_zone(self):
         """The property the anomaly-zone worlds are built on. If the species tree were the most
         frequent gene tree there, majority vote and concatenation would work on them. The
-        long-branch worlds are deliberately built outside the zone, with at most one short internal
-        branch, and are not covered here: their species tree is the most frequent gene tree."""
+        competitor is fixed in advance (ANOMALY_COMPETITORS) and the gene trees are drawn with a
+        different seed from the one that found it, so the comparison is not against the empirical
+        maximum. The long-branch worlds are deliberately built outside the zone, with at most one
+        short internal branch, and are not covered here: their species tree is the most frequent
+        gene tree."""
         ev = self.evaluator
         msc = sys.modules[ev.msc.__name__]
         anomaly = [spec for spec in ev.DEVELOPMENT_WORLDS + ev.HELDOUT_WORLDS if spec["kind"] == "anomaly"]
         self.assertEqual(len(anomaly), 6)
+        self.assertEqual({spec["seed"] for spec in anomaly}, set(ANOMALY_COMPETITORS))
         for spec in anomaly:
             world = ev._world(spec)
+            truth = frozenset(world["truth_splits"])
+            competitor = frozenset(msc.splits_of(msc.parse_newick(_with_unit_lengths(ANOMALY_COMPETITORS[spec["seed"]]))[1]))
+            self.assertNotEqual(competitor, truth, spec["seed"])
             rng = np.random.default_rng(12345)
             counts = collections.Counter()
-            for _ in range(20000):
+            for _ in range(100000):
                 gene_tree, _ = msc.simulate_gene_tree(world["trees"][0], rng)
                 counts[frozenset(gene_tree.unrooted_splits())] += 1
-            truth = frozenset(world["truth_splits"])
-            top, top_count = counts.most_common(1)[0]
-            self.assertNotEqual(top, truth, spec["seed"])
-            self.assertLess(counts[truth], top_count, spec["seed"])
+            self.assertLess(counts[truth], counts[competitor], spec["seed"])
 
     def test_the_free_gene_trees_are_biased_in_every_long_branch_world(self):
-        """Long-branch attraction by measurement: on medium loci the sequencing centre's plain
-        Jukes-Cantor tree joins the two fast species more often than the true gene tree of the
-        same locus does, in every long-branch world, and the gamma-corrected tree less often than
-        the free one. The true gene trees carry incomplete lineage sorting, so the excess over them,
-        not the raw rate, is the attraction."""
+        """Long-branch attraction by measurement: on slow loci, the class the reference buys, the
+        sequencing centre's plain Jukes-Cantor tree joins the two fast species more often than the
+        true gene tree of the same locus does, in every long-branch world, and the tree corrected
+        at the world's true site-rate shape less often than the free one. The true gene trees
+        carry incomplete lineage sorting, so the excess over them, not the raw rate, is the
+        attraction."""
         ev = self.evaluator
         msc = sys.modules[ev.msc.__name__]
         for spec in ev.DEVELOPMENT_WORLDS + ev.HELDOUT_WORLDS:
@@ -92,22 +118,42 @@ class AnomalyZoneSpeciesTreeTests(unittest.TestCase):
             fast = sorted(range(ev.N_TAXA), key=lambda t: -world["multiplier"][t])[:2]
             mask = msc.canonical_split((1 << fast[0]) | (1 << fast[1]))
             loci = [row["locus"] for row in world["catalogue"]
-                    if row["rate_class"] == "medium" and row["sites"] == 800][:240]
+                    if row["rate_class"] == "slow" and row["sites"] == 800][:world["budget"] // 2]
             true_hits = free_hits = corrected_hits = 0
             for index in loci:
-                entry = world["catalogue"][index]
-                rng_tree = np.random.default_rng((world["seed"], 9, index))
-                gene_tree, scaled = msc.simulate_gene_tree(world["trees"][0], rng_tree, world["multiplier"])
-                rng_sites = np.random.default_rng((world["seed"], 11, index))
-                alignment = msc.simulate_alignment(gene_tree, scaled, ev.CLASS_RATE["medium"],
-                                                   entry["sites"], ev.GAMMA_SHAPE, rng_sites)
+                gene_tree, _scaled, alignment = ev._simulate(world, index)
                 true_hits += mask in gene_tree.unrooted_splits()
                 free_hits += mask in msc.splits_of(msc.neighbour_joining(msc.jc_distances(alignment)))
                 corrected_hits += mask in msc.splits_of(msc.neighbour_joining(
-                    msc.jc_gamma_distances(alignment, ev.GAMMA_SHAPE)))
+                    msc.jc_gamma_distances(alignment, world["shape"])))
             n = float(len(loci))
             self.assertGreater((free_hits - true_hits) / n, 0.10, spec["seed"])
             self.assertLess(corrected_hits, free_hits, spec["seed"])
+
+    def test_the_site_rate_shape_is_estimable_and_guessing_it_is_costly(self):
+        """The shape is not published. The reference recovers it from the share of constant sites
+        on its first sixty loci to within a quarter on every world, and a candidate that fixes it
+        at 0.5 instead, the middle of the published range, loses a large part of the score: it
+        misreads the worlds whose shape is far from its guess and declines some of them for
+        the residual long-branch attraction."""
+        ev, ref = self.evaluator, self.reference
+        for spec in ev.DEVELOPMENT_WORLDS + ev.HELDOUT_WORLDS:
+            world = ev._world(spec)
+            loci = [row["locus"] for row in world["catalogue"]
+                    if row["rate_class"] == ref.CHOSEN_CLASS and row["sites"] == ref.CHOSEN_SITES]
+            bought = [ref._encode(ev._locus(world, index)["alignment"], list(ev.TAXA))
+                      for index in loci[:ref.SHAPE_LOCI]]
+            estimate, _observed, _error = ref._estimate_shape(bought)
+            self.assertLess(abs(np.log(estimate / world["shape"])), np.log(1.25), spec["seed"])
+        source = (TASK / "verification/reference_quartet_consensus.py").read_text(encoding="utf-8")
+        guessed = source.replace("    shape, _observed, _error = _estimate_shape(bought[:SHAPE_LOCI])\n",
+                                 "    shape = 0.5\n")
+        self.assertNotEqual(guessed, source)
+        namespace = {}
+        exec(compile(guessed, "guessed_shape_reference", "exec"), namespace)  # noqa: S102
+        estimated = ev.evaluate(ref.infer_species_tree)["combined_score"]
+        fixed = ev.evaluate(namespace["infer_species_tree"])["combined_score"]
+        self.assertLess(fixed, estimated - 0.3, "a guessed shape scores as well as the estimated one")
 
     def test_the_sequencing_budget_is_not_free(self):
         """A quarter of the budget must be materially worse than all of it."""
