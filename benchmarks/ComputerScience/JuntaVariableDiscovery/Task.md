@@ -132,9 +132,9 @@ per world.
 The reference scores 0.548 on the development split and 0.604 held out. It declines every world
 that is not a junta of the published size and makes no false discovery. Over twelve seeds for the
 label noise, this one and eleven re-drawn, it averages 0.545 on the development split and 0.573
-held out and makes no false discovery in 216 world-runs. It is not the ceiling. It recovers 0.42 to
-0.75 of the relevant variables in the junta worlds; the weakest of them sit at the edge of what the
-budget can certify.
+held out and makes no false discovery in 216 world-runs. It recovers 0.42 to 0.75 of the relevant
+variables in the junta worlds; the weakest of them sit at the edge of what the budget can certify
+at a family-wise error rate.
 
 The baseline in `solution.py` scores 0.000. It is degree-one correlation: one random point per
 query, each variable's correlation with the answer, a family-wise margin from zero. It recovers no

@@ -73,7 +73,7 @@ provenance:
   fresh_confirmation_status: not_completed
 novelty_risk:
   level: medium
-  rationale: That a function can depend on a variable only through a parity, where its degree-one correlation vanishes, is textbook Fourier analysis of Boolean functions (Kahn, Kalai and Linial 1988; O'Donnell 2014), and junta learning and testing are published problems (Blum and Langley 1997; Mossel, O'Donnell and Servedio 2004; Fischer, Kindler, Ron, Safra and Samorodnitsky 2004; Blum, Hellerstein and Littlestone 1995). A model that knows them will reach for correlations or a low-degree fit. Correlation-only methods score zero because they miss the parity and gated variables and claim every big parity. What the task fixes is the budget, the noise rate and the junta size so that the pivotal test barely certifies the weakest relevant variables, and the refusal threshold so that a big parity is declined and a junta is not. The shortcut probe bounds a distinct cheap strategy at 61 per cent of the reference, and not cleanly. The reference's headroom is deliberate and documented, since its family-wise margin is a union bound. Task.md names neither which worlds are juntas nor which relevant variables act through the parity or the gate. No frontier draw has been run yet, so the difficulty at the frontier is not measured.
+  rationale: That a function can depend on a variable only through a parity, where its degree-one correlation vanishes, is textbook Fourier analysis of Boolean functions (Kahn, Kalai and Linial 1988; O'Donnell 2014), and junta learning and testing are published problems (Blum and Langley 1997; Mossel, O'Donnell and Servedio 2004; Fischer, Kindler, Ron, Safra and Samorodnitsky 2004; Blum, Hellerstein and Littlestone 1995). A model that knows them will reach for correlations or a low-degree fit. Correlation-only methods score zero because they miss the parity and gated variables and claim every big parity. What the task fixes is the budget, the noise rate and the junta size so that the pivotal test barely certifies the weakest relevant variables, and the refusal threshold so that a big parity is declined and a junta is not. The shortcut probe bounds a distinct cheap strategy at 61 per cent of the reference, and not cleanly. The same test at three standard errors scores 0.764 with no false discovery over twelve run seeds, but it keeps no family-wise bound, since its exact chance of a false discovery per junta world is 0.0076 against 1.0e-4 for the reference; the gap is a choice of error rate and not an omitted method. Task.md names neither which worlds are juntas nor which relevant variables act through the parity or the gate. No frontier draw has been run yet, so the difficulty at the frontier is not measured.
 lineage:
   status: complete
   builder_model_ids:
@@ -95,10 +95,10 @@ lineage:
     size, where every variable has influence one and the reference declines by counting significant
     variables. The budget was first 40000 and the noise 0.05, where the reference recovered every
     relevant variable and scored near one; the budget is now 20000 and the noise 0.10 so the
-    weakest relevant variables sit at the edge of certifiability and the reference scores 0.545. A
-    reference at a fixed confidence level was beaten with no false discovery by the same test at a
-    tighter margin; the reference is now the family-wise margin at delta over n, and the tighter
-    margin z = 3 is documented as headroom.
+    weakest relevant variables sit at the edge of certifiability and the reference averages 0.545
+    over twelve run seeds. A reference at a fixed confidence level was beaten with no false
+    discovery by the same test at a tighter margin; the reference is now the family-wise margin at
+    delta over n, and the tighter margin z = 3 is documented as the same test without that bound.
   shortcut_discoverer: builder_self_audit_with_a_ten_strategy_probe
   frozen_before_eval: false
   freeze_timestamp: null

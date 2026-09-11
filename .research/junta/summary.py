@@ -6,7 +6,7 @@ references/known_best.md, against the package's own delivered evaluator. Run:
 import importlib.util, math
 from pathlib import Path
 import numpy as np
-from scipy.stats import norm
+from scipy.stats import binom, norm
 
 ROOT=Path(__file__).resolve().parents[2]; D=ROOT/"benchmarks/ComputerScience/JuntaVariableDiscovery"
 def load(n,p):
@@ -47,15 +47,32 @@ da=ev.evaluate(pr.S_declare_all); ra=ev.evaluate(pr.S_refuse_all)
 print(f"  declare_all dev {da['development_mechanism_score']:.4f} FD {sum(1 for r in da['per_instance'] if r['false_discovery'])}; "
       f"refuse_all dev {ra['development_mechanism_score']:.4f}")
 
+N_SUP=12*sum(1 for r in g['per_instance'] if r['kind']=='supported')   # supported world-runs over 12 seeds
+def null_error(z, budget):
+    """Exact chance the pivotal test at margin z names an irrelevant variable. The two answers of a
+    pair see the same function value, so they disagree only through the noise and the count over
+    per pairs is Binomial(per, base); the variable is named when its rate minus z observed standard
+    errors clears base. Returns the per-variable rate, the union bound over the n candidates, the
+    chance a supported world names any of its n - K irrelevant variables, and the chance none of
+    the N_SUP supported world-runs does."""
+    base=2*ev.NOISE*(1-ev.NOISE); per=max(4,int(budget*0.9)//(2*ev.N))
+    k=next(k for k in range(per+1) if k/per-z*math.sqrt(max(k/per*(1-k/per),1e-9)/per)>base)
+    a=binom.sf(k-1,per,base); w=1-(1-a)**(ev.N-ev.MAX_JUNTA)
+    return a, ev.N*a, w, (1-w)**N_SUP
+def guarantee(z, budget):
+    a,u,w,p0=null_error(z,budget)
+    return f"  | exact: per-variable {a:.2e}  union over n {u:.2e}  per supported world {w:.2e}  P(no FD in {N_SUP}) {p0:.2f}"
+
 print("="*70)
 print("LADDER: reference method, margin z (family-wise ref z=%.2f) and budget fraction" % norm.isf(1e-3/28))
+print(f"  delta/n = {1e-3/ev.N:.2e}, normal tail at z=3: {norm.sf(3.0):.2e}")
 for z in [norm.isf(1e-3/28),3.5,3.25,3.0,2.75,2.5]:
     a=robust(pr.S_pivotal_fixedz(z))
-    tag=" <-REF" if abs(z-norm.isf(1e-3/28))<0.01 else (" <-HEADROOM" if abs(z-3.0)<0.01 else (" <-CLIFF" if abs(z-2.75)<0.01 else ""))
-    print(f"  z={z:.3f}  dev {a[0]:.3f} [{a[1]:.3f},{a[2]:.3f}]  held {a[3]:.3f}  FD {a[6]}{tag}")
+    tag=" <-REF" if abs(z-norm.isf(1e-3/28))<0.01 else (" <-CLIFF" if abs(z-2.75)<0.01 else "")
+    print(f"  z={z:.3f}  dev {a[0]:.3f} [{a[1]:.3f},{a[2]:.3f}]  held {a[3]:.3f}  FD {a[6]}{tag}{guarantee(z,ev.BUDGET)}")
 for frac in [0.75,0.5,0.25]:
     a=robust(pr.S_pivotal_budget(frac))
-    print(f"  budget {frac:.2f} (family-wise margin)  dev {a[0]:.3f}  held {a[3]:.3f}  FD {a[6]}")
+    print(f"  budget {frac:.2f} (family-wise margin)  dev {a[0]:.3f}  held {a[3]:.3f}  FD {a[6]}{guarantee(norm.isf(1e-3/28),int(ev.BUDGET*frac))}")
 
 print("="*70)
 print("SHORTCUT PROBE: methods that do NOT run the full-budget pivotal family-wise test")

@@ -33,18 +33,25 @@ variables, which sit near the edge of what 20000 queries at a 0.10 noise rate ca
 family-wise margin. All five worlds that are not juntas are declined, because more than
 max_junta_size variables clear the bar.
 
-What it leaves on the table, by design:
+Why the margin is family-wise, and what a tighter one gives up (`.research/junta/summary.py`):
 
-- **Its margin is a union bound.** The chance that any of the n candidate variables is named in
-  error is held below delta = 1e-3. The disagreement rate of a truly irrelevant variable sits
-  tightly at the noise floor, so a tighter margin loses little safety and certifies more of the
-  weak relevant variables.
+- **The family-wise margin carries a bound.** For an irrelevant variable the two answers of a pair
+  see the same function value, so they disagree only through the noise, and the count over the 321
+  pairs is exactly binomial with rate base. At z = 3.97 the test as coded names such a variable
+  with probability 6.6e-6, below delta / n = 3.6e-5, so the union bound over the n candidates holds
+  exactly and a junta world names any of its sixteen irrelevant variables with probability 1.0e-4.
+- **Three standard errors carry none.** The same test at z = 3 averages 0.764 on the development
+  split and 0.783 held out over twelve run seeds. It names an irrelevant variable with probability
+  4.7e-4, so a junta world makes a false discovery with probability 0.0076, about seventy times
+  the reference's rate, and its union bound over n is 0.013, thirteen times delta. It makes none in
+  the 132 junta world-runs of the twelve seeds, but at that rate none at all happens with
+  probability 0.37, so the clean record is the luck of the seeds and not a guarantee.
+- **The cliff is close.** At 2.75 standard errors it makes a false discovery in five of the 216
+  world-runs and its development score falls to 0.321 on the worst seed; at 2.5 it makes eight.
 
-The recoverable headroom is the same test with the margin at three standard errors instead of the
-family-wise 3.97, `.research/junta/summary.py`. It scores 0.764 on the development split and 0.783
-held out, with no false discovery over twelve run seeds. The cliff is close: at 2.75 standard errors
-it scores 0.756 on the graded seed but makes false discoveries on five of the twelve seeds and its
-development score collapses to 0.321 on the worst of them; at 2.5 it makes eight.
+The gap between the two margins is the price of the family-wise guarantee. It is a choice of error
+rate for the same test, not an omitted method: a candidate that tightens the margin buys a higher
+mean score with a false discovery about once in 130 junta worlds.
 
 ## Model draws
 
@@ -74,24 +81,26 @@ junta. It makes a false discovery in seven of the eighteen worlds.
 
 `.research/junta/summary.py`, one reference choice changed at a time, each over twelve run seeds.
 The graded seeds are the evaluator's own; the mean re-draws every world's label-noise seed. False
-discoveries count named irrelevant variables in the junta worlds and claims in the others.
+discoveries count the world-runs that name an irrelevant variable in a junta world or claim a world
+that is not one. The last column is the exact chance that the test names an irrelevant variable in a
+junta world, from the binomial null.
 
-| strategy | development | held out | false discoveries over twelve seeds |
-|---|---|---|---|
-| **reference**: family-wise margin, z = 3.97 | **0.545** | 0.573 | 0 / 216 |
-| margin z = 3.5 | 0.650 | 0.667 | 0 / 216 |
-| margin z = 3.25 | 0.696 | 0.726 | 0 / 216 |
-| **headroom**: margin z = 3.0 | 0.764 | 0.783 | 0 / 216 |
-| margin z = 2.75 | 0.756 | 0.773 | 5 / 216 (dev collapses to 0.321) |
-| margin z = 2.5 | 0.757 | 0.828 | 8 / 216 |
-| three-quarters of the budget, family-wise margin | 0.469 | 0.476 | 0 / 216 |
-| half the budget | 0.428 | 0.439 | 0 / 216 |
-| a quarter of the budget | 0.387 | 0.366 | 0 / 216 |
+| strategy | development | held out | false discoveries over twelve seeds | exact chance per junta world |
+|---|---|---|---|---|
+| **reference**: family-wise margin, z = 3.97 | **0.545** | 0.573 | 0 / 216 | 1.0e-4 |
+| margin z = 3.5 | 0.650 | 0.667 | 0 / 216 | 1.0e-3 |
+| margin z = 3.25 | 0.696 | 0.726 | 0 / 216 | 2.8e-3 |
+| margin z = 3.0, no family-wise bound | 0.764 | 0.783 | 0 / 216 | 7.6e-3 |
+| margin z = 2.75 | 0.756 | 0.773 | 5 / 216 (dev collapses to 0.321) | 1.9e-2 |
+| margin z = 2.5 | 0.757 | 0.828 | 8 / 216 | 6.5e-2 |
+| three-quarters of the budget, family-wise margin | 0.469 | 0.476 | 0 / 216 | 7.8e-5 |
+| half the budget | 0.428 | 0.439 | 0 / 216 | 5.1e-5 |
+| a quarter of the budget | 0.387 | 0.366 | 0 / 216 | 5.5e-5 |
 
-The margin does all the work above the refusal. The family-wise margin at delta / n is a union
-bound and is deliberately loose; tightening it to three standard errors recovers the weak relevant
-variables and lifts the score to 0.764 with no false discovery, and below 2.75 standard errors the
-false discovery rate climbs fast. Under three-quarters of the budget the same full pipeline scores
+The margin does all the work above the refusal. Each step down certifies more of the weak relevant
+variables and raises the exact chance of a false discovery per junta world, from 1.0e-4 at the
+family-wise margin to 0.0076 at three standard errors and 0.065 at 2.5; the observed false
+discoveries begin at 2.75. Under three-quarters of the budget the same full pipeline scores
 0.469, so the budget is a real constraint, not slack; that row is the method under-resourced, not a
 shortcut.
 
@@ -125,18 +134,19 @@ relevant variables and declines the big parities.
   from 2 to 6, in every unsupported world and zero in every supported one.
 - The budget was first 40000 and the noise rate 0.05. The reference recovered every relevant
   variable and scored near one. The budget is now 20000 and the noise 0.10, so the weakest relevant
-  variables sit at the edge of certifiability and the reference scores 0.545.
+  variables sit at the edge of certifiability and the reference averages 0.545 over twelve run
+  seeds.
 - A reference at a fixed confidence level was beaten with no false discovery by the same test at a
   tighter margin. The reference is now the family-wise margin at delta / n, and the tighter margin,
-  three standard errors, is documented above as the headroom.
+  three standard errors, is documented above as the same test without that bound.
 
 ## Robustness
 
 `.research/junta/summary.py` re-runs the reference with every world's label-noise seed shifted by
 7919 per shift. Over twelve shifts it averages 0.545 on the development split, from 0.500 to 0.595,
 and 0.573 held out, from 0.521 to 0.625, with no false discovery in 216 world-runs and every world
-that is not a junta declined. The headroom margin averages 0.764 and 0.783 over the same twelve
-shifts with none.
+that is not a junta declined. The same test at three standard errors averages 0.764 and 0.783 over
+the same twelve shifts with none, at an exact false discovery rate of 0.0076 per junta world.
 
 `tests/test_junta_variable_discovery.py` checks that a campaign's flip rate follows the published
 model against the true function. It checks the recorded relevant sets and kappa*, zero in every
