@@ -1,5 +1,15 @@
 # ClockSyncInversion: known best
 
+**Admission HOLD (2026-09-11).** The complete fixed ten-call plan at `56778e87`
+returned two valid baseline scores of zero and eight `candidate_runtime_error`
+results for the reference, detection-only probe, and two ablations. Invalid
+scores remain `-1e18`; no reference/probe margin or frontier difficulty is
+established. A later exact lower-hull reduction has passed only data-free local
+LP equivalence tests. It has not been replayed on the task. The full oracle test
+attempt timed out at 900 seconds with failures. No model calibration was started.
+See `.research/pr83_numerical_hold_2026-09-11.md` at repository root for the three
+immutable replay plans, numerical diagnostic, isolation test and remaining work.
+
 Maintainer revision, 2026-09-11: the original sandbox reference exited twice
 under SciPy 1.10.1; baseline was valid and zero twice. The reference now uses
 scaled sparse interior-point LPs, with the fixed detection-only probe and two

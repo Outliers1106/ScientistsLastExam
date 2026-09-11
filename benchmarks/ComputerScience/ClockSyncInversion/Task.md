@@ -152,21 +152,11 @@ is scored too, under the same keys with the `heldout_` prefix, and is not visibl
 
 ## Where the scale sits
 
-The reference scores 0.568 on the development split and 0.501 held out. It declines every world
-where the model fails and makes no false discovery. Over sixteen seeds for the queueing and the
-jitter, this one and fifteen re-drawn, it averages 0.567 and 0.501 and never makes a false
-discovery. It is not the ceiling. Sharper intervals from the same budget exist.
-
-The baseline in `solution.py` scores 0.000. It is NTP with a rate: the minimum delay in each
-direction, half their difference, a line through twelve rounds, five microseconds either side. It
-misses a true offset in every world where the model holds and claims every world where it does
-not. Declining everything scores 0.000.
-
-A sweep of 29 low-effort strategies was scored on the same worlds. They answer blind, take NTP
-midpoints with and without a rate at margins from 1 us to 1 ms, bound each round with Cristian's
-method, fit a lower envelope to the minimum delays without checking the model, or check the model
-first and then answer from a linear program over the minimum delays alone. The best of them
-reaches 0.385 on the development split, 68 per cent of the reference, and 0.298 held out.
+Declining everything scores 0.000 by construction. The baseline in `solution.py` uses NTP
+minima with a fitted rate: half the difference of directional minima, a line through twelve
+rounds, and five microseconds either side. Its intervals do not account for unidentified
+propagation asymmetry or test whether the affine model holds. Scores and shortcut comparisons
+from earlier packages are historical reviewer evidence in `references/known_best.md`.
 
 ## Rules
 

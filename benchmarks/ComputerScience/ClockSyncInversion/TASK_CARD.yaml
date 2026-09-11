@@ -1,4 +1,8 @@
 schema_version: 2
+# Admission HOLD: current full-world reference execution has not passed. The
+# builder's scores/ablation results below describe original PR head 2dd3302 only;
+# they do not certify this repaired package. See references/known_best.md and
+# .research/pr83_numerical_hold_2026-09-11.md for immutable replay boundaries.
 evaluation_budget:
   timeout_s: 300
 shortcut_probe:
@@ -147,4 +151,13 @@ construction_audit:
   expert_hours: null
   red_team_rounds: 6
   oracle_disagreement_status: not_quantified
-  independent_recomputation_status: the reference and the baseline are runnable from this directory, and the ablation ladder, the 29-strategy shortcut probe and the sixteen-seed robustness check from the scripts in .research/clock_sync, where summary.py recomputes every quoted number; the 33 bad-candidate shapes are in tests/test_clock_sync_inversion.py; the sandbox evaluation of scripts/check_task_contribution.py has not been run because the task was built on a machine without Bubblewrap; a frontier-model draw has not been run because the machine has no model endpoint
+  independent_recomputation_status: >-
+    HOLD. On repaired revision 56778e87 the fixed ten-call Linux sandbox plan
+    completed with two valid baseline scores of zero and eight invalid
+    candidate_runtime_error results across reference, detection-only, no-order,
+    and no-atom pairs. These failures retain score -1e18. The later exact row-hull
+    reduction has only data-free local equivalence tests, no full-task replay.
+    The full oracle property suite timed out after 900 seconds with failures;
+    no complete passing result or JUnit was produced. Standard contribution-gate
+    and independent frontier-model calibration remain not run on this package.
+    Earlier builder direct-driver results refer to original PR head 2dd3302.
