@@ -205,3 +205,7 @@ def identify(problem, exchange, wait, cfg=None):
                 return {"verdict": "no_model", "confidence": 0.9}
             intervals[str(j)].append([float(lo.fun), float(-hi.fun)])
     return {"verdict": "offsets", "intervals": intervals, "confidence": 0.6}
+
+
+# Fixed disclosed configuration; no task data or hidden oracle imports.
+CFG.update({'order': False})

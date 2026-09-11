@@ -79,7 +79,10 @@ def make_world(spec):
     calibrated = [links[k] for k in spec["calibrated"]]
     p, lower, queue = {}, {}, {}
     for (a, b) in links:
-        base = rng.uniform(50e-6, 2e-3)
+        # The uncalibrated asymmetry is at most 200 us, split equally across the
+        # two directions. Keep both one-way propagations in the stated 50 us..
+        # 2 ms range. A 50 us midpoint used to create negative physical delays.
+        base = rng.uniform(150e-6, 1.9e-3)
         if (a, b) in calibrated:
             asym = rng.choice([-1, 1]) * rng.uniform(0.6, 1.0) * ALPHA
         else:
@@ -473,13 +476,24 @@ def _split_summary(records):
     raw = float(np.mean([r["mechanism_score"] for r in records]))
     always_abstain = len(unsupported) / len(records)
     normalized = float(np.clip((raw - always_abstain) / (1.0 - always_abstain), 0.0, 1.0))
+    false_count = sum(bool(r["false_discovery"]) for r in records)
+    claim_count = sum(not r["abstained"] for r in records)
+    refusal_count = sum(bool(r["correct_refusal"]) for r in unsupported)
+    supported_claim_count = sum(not r["abstained"] for r in supported)
     return {
         "normalized_mechanism": normalized,
         "raw_mechanism": raw,
         "interval_sharpness": float(np.mean([r["sharpness"] for r in supported])),
-        "false_discovery_rate": float(np.mean([r["false_discovery"] for r in records])),
-        "correct_refusal_rate": float(np.mean([r["correct_refusal"] for r in unsupported])),
-        "discovery_coverage": float(np.mean([not r["abstained"] for r in supported])),
+        "false_discovery_rate": false_count / claim_count if claim_count else 0.0,
+        "false_claim_world_rate": false_count / len(records),
+        "false_discovery_count": false_count,
+        "claim_count": claim_count,
+        "correct_refusal_rate": refusal_count / len(unsupported),
+        "correct_refusal_count": refusal_count,
+        "unsupported_count": len(unsupported),
+        "discovery_coverage": supported_claim_count / len(supported),
+        "supported_claim_count": supported_claim_count,
+        "supported_count": len(supported),
         "confidence_calibration": float(np.mean([r["confidence_calibration_score"] for r in records])),
         "mean_probes_used": float(np.mean([r["probes_used"] for r in records])),
         "valid_count": sum(bool(r["valid"]) for r in records),
@@ -495,7 +509,7 @@ def evaluate(identify):
     dev = _split_summary(development)
     held = _split_summary(heldout)
     valid = 1.0 if dev["valid_count"] > 0 else 0.0
-    return {
+    result = {
         "combined_score": dev["normalized_mechanism"] if valid else 0.0,
         "valid": valid,
         "feasibility_rate": dev["valid_count"] / dev["world_count"],
@@ -517,3 +531,12 @@ def evaluate(identify):
         "heldout_discovery_coverage": held["discovery_coverage"],
         "per_instance": development + heldout,
     }
+    # Publish both denominators and the former per-world false-claim rate. The
+    # FDR axis is false claims / claims; an all-abstain denominator is zero and
+    # downstream metric_contract readers therefore report it as unavailable.
+    for prefix, split in (("development", dev), ("heldout", held)):
+        for key in ("false_claim_world_rate", "false_discovery_count", "claim_count",
+                    "correct_refusal_count", "unsupported_count", "supported_claim_count",
+                    "supported_count", "world_count", "valid_count"):
+            result[prefix + "_" + key] = split[key]
+    return result

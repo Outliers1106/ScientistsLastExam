@@ -1,5 +1,18 @@
 # ClockSyncInversion: known best
 
+Maintainer revision, 2026-09-11: the original sandbox reference exited twice
+under SciPy 1.10.1; baseline was valid and zero twice. The reference now uses
+scaled sparse interior-point LPs, with the fixed detection-only probe and two
+ablations carried as standalone candidates. An independent check also found a
+negative one-way propagation in the original frozen worlds. Midpoint delays now
+range from 150 us to 1.9 ms so both directions remain within the stated 50 us to
+2 ms physical range, without changing the random draw order or selecting on scores.
+The FDR denominator is now interval claims, with the former per-world rate retained
+under a separate name and all denominators explicit. The tables below are the
+author's historical measurements of the original package; new measurements and
+model calibration must be recorded separately before admission. Original records
+are retained unchanged and are not current-source evidence.
+
 ## Reference (truth-blind): an envelope LP with empty-queue rows
 
 `verification/reference_envelope_lp.py`. It reads only the public problem and what `exchange`

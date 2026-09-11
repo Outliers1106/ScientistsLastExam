@@ -82,6 +82,45 @@ class ClockSyncInversionTests(unittest.TestCase):
             else:
                 self.assertIsNone(world["widths"], spec["name"])
 
+    def test_one_way_propagations_are_positive_and_within_the_public_model(self):
+        for spec in self.specs:
+            world = self.evaluator._world(spec)
+            for direction, propagation in world["p"].items():
+                self.assertGreaterEqual(propagation, 50e-6, (spec["name"], direction))
+                self.assertLessEqual(propagation, 2e-3, (spec["name"], direction))
+                self.assertGreater(world["lower"][direction], 0.0)
+
+    def test_fdr_counts_claims_and_preserves_the_distinct_world_rate(self):
+        ev = self.evaluator
+        common = {"sharpness": 0.0, "mechanism_score": 0.0,
+                  "confidence_calibration_score": 0.0, "probes_used": 0, "valid": True}
+        records = [
+            dict(common, kind="supported", abstained=False, false_discovery=True, correct_refusal=False),
+            dict(common, kind="supported", abstained=False, false_discovery=False, correct_refusal=False),
+            dict(common, kind="supported", abstained=True, false_discovery=False, correct_refusal=False),
+            dict(common, kind="unsupported", abstained=True, false_discovery=False, correct_refusal=True),
+        ]
+        result = ev._split_summary(records)
+        self.assertEqual(result["false_discovery_count"], 1)
+        self.assertEqual(result["claim_count"], 2)
+        self.assertEqual(result["false_discovery_rate"], 0.5)
+        self.assertEqual(result["false_claim_world_rate"], 0.25)
+        self.assertEqual(result["correct_refusal_count"], 1)
+        self.assertEqual(result["unsupported_count"], 1)
+        self.assertEqual(result["supported_claim_count"], 2)
+        self.assertEqual(result["supported_count"], 3)
+        self.assertEqual(result["discovery_coverage"], 2 / 3)
+
+    def test_zero_claim_denominator_is_unavailable_to_discovery_reporting(self):
+        import yaml
+        from scripts.report_discovery_triple import extract
+
+        metrics = self.evaluator.evaluate(lambda *_: {"abstain": True})
+        contract = yaml.safe_load((TASK / "TASK_CARD.yaml").read_text())["metric_contract"]
+        for split in ("development", "heldout"):
+            self.assertEqual(metrics[split + "_claim_count"], 0)
+            self.assertEqual(extract(metrics, split, contract)["fdr"]["status"], "zero_denominator")
+
     def test_every_unsupported_world_is_detectable_and_no_supported_one_is(self):
         """kappa* is the smallest relaxation, in pair-jitter units, that lets affine clocks and
         constant delays within the published bounds reproduce every true floor trajectory."""

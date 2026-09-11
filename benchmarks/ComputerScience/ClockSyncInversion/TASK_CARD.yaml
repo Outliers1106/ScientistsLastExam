@@ -1,4 +1,46 @@
 schema_version: 2
+evaluation_budget:
+  timeout_s: 300
+shortcut_probe:
+  schema_version: 1
+  metric: combined_score
+  reference:
+    candidate: verification/reference_envelope_lp.py
+    expected_score: null
+  probes:
+  - id: detection_only_z3
+    candidate: verification/shortcut_detection_only.py
+    expected_score: null
+  relative_margin: 0.1
+  score_tolerance: 0.000001
+metric_contract:
+  mechanism:
+    metric: mechanism_score
+    estimand: normalized_interval_sharpness_with_false_claim_and_refusal_utility
+    numerator: raw_world_utility_mean_minus_always_abstain_utility
+    denominator: one_minus_always_abstain_utility
+    direction: higher_is_better
+  fdr:
+    metric: false_discovery_rate
+    estimand: false_discovery_fraction_among_interval_claims
+    numerator: false_discovery_count
+    denominator: claim_count
+    denominator_metric: claim_count
+    direction: lower_is_better
+  refusal:
+    metric: correct_refusal_rate
+    estimand: correct_refusal_fraction_in_unsupported_worlds
+    numerator: correct_refusal_count
+    denominator: unsupported_count
+    denominator_metric: unsupported_count
+    direction: higher_is_better
+  coverage:
+    metric: discovery_coverage
+    estimand: interval_claim_fraction_in_supported_worlds
+    numerator: supported_claim_count
+    denominator: supported_count
+    denominator_metric: supported_count
+    direction: higher_is_better
 scientific_question: Bound the clock offset of every node of a small network at the start and at the end of a horizon from charged two-way timestamp exchanges whose one-way delays mix constant propagation, random queueing and timestamp jitter, given a lower bound on every propagation delay and an asymmetry bound on some links, and decline when no affine clocks and constant delays within those bounds explain the exchanges.
 artifact: A verdict, and for offsets an interval for every clock at both epochs, with a confidence and an optional refusal.
 oracle:

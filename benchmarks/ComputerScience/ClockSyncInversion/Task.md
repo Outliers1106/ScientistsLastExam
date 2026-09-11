@@ -137,6 +137,15 @@ Reported separately, never averaged into one number:
 `development_confidence_calibration` · `development_mean_probes_used` ·
 `development_raw_mechanism`
 
+The false-discovery fraction divides `false_discovery_count` by `claim_count`,
+counting only submitted interval claims in the denominator. With no claims the
+numeric placeholder is zero and the metric contract reports a zero-denominator
+result as unavailable. `false_claim_world_rate` separately divides the same
+numerator by `world_count`. Refusal divides `correct_refusal_count` by
+`unsupported_count`; coverage divides `supported_claim_count` by `supported_count`.
+All these counts are reported for each split. They are evaluator diagnostics,
+not extra search feedback.
+
 A sealed held-out set of six further worlds, four where the model holds and two where it does not,
 is scored too, under the same keys with the `heldout_` prefix, and is not visible to a searcher.
 `per_instance` carries one row per world.
@@ -163,5 +172,8 @@ reaches 0.385 on the development split, 68 per cent of the reference, and 0.298 
 
 - Only edit `solution.py`; keep `identify(problem, exchange, wait)`.
 - NumPy, SciPy and the standard library only. Deterministic CPU code.
+- The validation environment pins NumPy 1.24.4 and SciPy 1.10.1. HiGHS currently
+  exits inside this candidate sandbox; SciPy's `interior-point` and `revised simplex`
+  backends are available. Scale time units when solving LPs with microsecond errors.
 - `sle.contract_lint` is importable and free to call for shape checks. It costs no exchange.
 - Do not read `verification/` or `frontier_eval/`.
