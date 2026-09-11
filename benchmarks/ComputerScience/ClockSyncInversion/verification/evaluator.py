@@ -437,6 +437,11 @@ def _evaluate_world(identify, spec, split, index):
     bench = _Bench(world, spec["run_seed"])
     base = {"split": split, "world_index": int(index), "kind": world["kind"], "probes_used": 0}
     try:
+        # A world is an independent experiment, including the split boundary.
+        # Keep callbacks within this world in one session, but never let global
+        # state or /tmp from an earlier world reveal its position in the suite.
+        if (split != "development" or index > 0) and hasattr(identify, "reset_session"):
+            identify.reset_session()
         exchange, wait = bench.oracle()
         submission = identify(public_problem(world), exchange, wait)
         intervals, confidence = _validate_submission(submission, world["N"])

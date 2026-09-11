@@ -44,6 +44,37 @@ CFG = {"rounds": 12, "keep": 3, "groups": 3, "delta": 1e-3, "atoms": True, "dete
 # sigmas, a hand-set threshold with no probability behind it (the ladder and the probe use it)
 
 
+def _solve_centered_lp(c, A, b, bounds, center, scale):
+    """Solve the identical LP in x = center + scale*z coordinates.
+
+    Clock offsets/rates can dwarf sub-microsecond residuals. Subtract the
+    public-observation rough-clock fit before unit scaling, and shift propagation
+    variables by their public lower bounds. No constraint or objective changes.
+    """
+    c, A, b = np.asarray(c), np.asarray(A), np.asarray(b)
+    objective = c * scale
+    objective_scale = max(float(np.max(np.abs(objective))), 1e-12)
+    shifted_bounds = [(None if lo is None else (lo - center[k]) / scale[k],
+                       None if hi is None else (hi - center[k]) / scale[k])
+                      for k, (lo, hi) in enumerate(bounds)]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        result = linprog(objective / objective_scale,
+                         A_ub=csc_matrix(A * scale / 1e-6),
+                         b_ub=(b - A @ center) / 1e-6, bounds=shifted_bounds,
+                         method="interior-point",
+                         options={"tol": 1e-9, "maxiter": 1000, "sparse": True})
+    # Unboundedness or numerical failure is not evidence of model infeasibility.
+    if result.status not in (0, 2):
+        raise RuntimeError("LP did not establish an optimum or infeasibility")
+    if result.status == 0:
+        if result.x is None or not np.all(np.isfinite(result.x)) or not np.isfinite(result.fun):
+            raise RuntimeError("LP returned no finite optimum")
+        result.x = center + result.x * scale
+        result.fun = float(result.fun * objective_scale + c @ center)
+    return result
+
+
 def identify(problem, exchange, wait, cfg=None):
     cfg = {**CFG, **(cfg or {})}
     N = problem["nodes"]
@@ -118,31 +149,12 @@ def identify(problem, exchange, wait, cfg=None):
             Aub.append(row); bub.append(alpha)
 
     def solve(c, A, b):
-        # Use the pinned SciPy 1.10.1 sparse interior-point implementation: its
-        # HiGHS backend exits in the candidate sandbox. Express offsets/delays
-        # in microseconds and rates as microseconds over the public horizon so
-        # LP feasibility tolerances are meaningful for timestamp jitter.
+        # HiGHS exits in the pinned candidate sandbox. The legacy sparse backend
+        # requires residual-sized coordinates rather than large absolute clocks.
         scale = np.full(nv, 1e-6)
         scale[N - 1:2 * (N - 1)] /= H
-        objective = np.asarray(c) * scale
-        objective_scale = max(float(np.max(np.abs(objective))), 1e-12)
-        scaled_bounds = [(None if lo is None else lo / scale[k],
-                          None if hi is None else hi / scale[k])
-                         for k, (lo, hi) in enumerate(bounds)]
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            result = linprog(objective / objective_scale,
-                             A_ub=csc_matrix(np.asarray(A) * scale / 1e-6),
-                             b_ub=np.asarray(b) / 1e-6, bounds=scaled_bounds,
-                             method="interior-point",
-                             options={"tol": 1e-9, "maxiter": 1000, "sparse": True})
-        if result.status not in (0, 2, 3):
-            raise RuntimeError("LP did not establish an optimum or infeasibility")
-        if result.x is not None:
-            result.x = result.x * scale
-        if result.fun is not None:
-            result.fun = float(result.fun * objective_scale)
-        return result
+        center = np.concatenate([th[1:], sk[1:], [L[d] for d in dirs]])
+        return _solve_centered_lp(c, A, b, bounds, center, scale)
 
     # lower envelope: the fit that leaves the least total slack in the kept rows
     c = np.zeros(nv)
@@ -205,7 +217,6 @@ def identify(problem, exchange, wait, cfg=None):
                 return {"verdict": "no_model", "confidence": 0.9}
             intervals[str(j)].append([float(lo.fun), float(-hi.fun)])
     return {"verdict": "offsets", "intervals": intervals, "confidence": 0.6}
-
 
 # Fixed disclosed configuration; no task data or hidden oracle imports.
 CFG.update({'order': False})
