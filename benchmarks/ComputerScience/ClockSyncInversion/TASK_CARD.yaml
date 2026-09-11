@@ -1,8 +1,11 @@
 schema_version: 2
-# Admission HOLD: current full-world reference execution has not passed. The
-# builder's scores/ablation results below describe original PR head 2dd3302 only;
-# they do not certify this repaired package. See references/known_best.md and
-# .research/pr83_numerical_hold_2026-09-11.md for immutable replay boundaries.
+# Admission status: the numerical failure behind the 2026-09-11 HOLD is repaired
+# (the reference's LPs are solved by single-threaded revised simplex; see
+# references/known_best.md, "Numerical repair"). The scores and ablations below are
+# in-process builder measurements on that repaired source; the Linux sandbox gate,
+# the shortcut declarations and the first-proposal calibration remain to be run by
+# the maintainer. .research/pr83_numerical_hold_2026-09-11.md keeps the failed
+# replay plans unchanged.
 evaluation_budget:
   timeout_s: 300
 shortcut_probe:
@@ -53,7 +56,7 @@ oracle:
   deterministic: true
 normalization:
   baseline: NTP with a rate, twelve rounds of exchanges on every link, per-round minimum delays in both directions and half their difference, a line through the rounds, offsets carried from node 0 along a breadth-first tree, five microseconds either side, never declining
-  reference: twelve rounds spread over the horizon, rough clocks from per-round minima, upper rows from the three lowest residuals of every round and from a Beta order statistic, a lower-envelope LP, empty-queue rows for each third of the horizon from a binomial count at the published floor and the quantile of the least jitter, lower bounds and calibrated asymmetry bounds, intervals from the LP's extremes and a refusal when it is infeasible; family-wise error at most 0.00075 per world by a union bound, the tilt allowance aside; it scores 0.568 on the development split and 0.501 held out
+  reference: twelve rounds spread over the horizon, rough clocks from per-round minima, upper rows from the three lowest residuals of every round and from a Beta order statistic, a lower-envelope LP, empty-queue rows for each third of the horizon from a binomial count at the published floor and the quantile of the least jitter, lower bounds and calibrated asymmetry bounds, intervals from the LP's extremes and a refusal when it is infeasible; family-wise error at most 0.00075 per world by a union bound, the tilt allowance aside; it scores 0.569 on the development split and 0.503 held out
   score: development mechanism normalized above always-abstain; in a supported world intervals that cover every offset score the mean over clocks and epochs of the identifiable width over the submitted width, capped at one, and a miss scores minus one; in an unsupported world declining scores one and a claim zero; sharpness, false discovery, refusal, coverage, calibration, probes used and the held-out split stay separate
 citations:
 - id: doi:10.1016/S0019-9958(84)80033-9
@@ -80,7 +83,7 @@ invariants:
 - the exchanges come from the published model; every one-way delay is its propagation plus non-negative queueing plus jitter, at least one probe in twenty finds the queue empty at any time, every propagation is at or above its lower bound and every calibrated asymmetry within 1 us, and the test suite checks a campaign's delays against the true clocks
 - the oracle's widths are exact; with unlimited noiseless data the rates are identified and the offsets are not, and what bounds them is the lower bounds and the calibrated links; the identifiable widths of the eleven supported worlds run from 0.90 to 53.82 us
 - every unsupported world is detectable and no supported one is; the smallest relaxation that lets affine clocks and constant delays within the bounds reproduce every true floor trajectory is 13.0 to 23.2 pair jitters in the unsupported worlds and zero in the supported ones
-- the empty-queue rows are what catch the faults; without them the reference claims six of the seven unsupported worlds and scores 0.000 on both splits, with one row over the whole horizon instead of one per third it claims four and scores 0.106 and 0.213, and used only as a test they catch every fault and leave intervals that score 0.348 and 0.257
+- the empty-queue rows are what catch the faults; without them the reference claims six of the seven unsupported worlds and scores 0.000 on both splits, with one row over the whole horizon instead of one per third it claims four and scores 0.116 and 0.228, and used only as a test they catch every fault and leave intervals that score 0.348 and 0.257
 - an interval that misses costs one world wherever it is claimed, minus one in a supported world and zero where declining scores one; the reference makes no false discovery in 288 world-runs over sixteen run seeds
 - declining every world scores exactly zero by construction, and so do the baseline and a claim of one second either side of zero everywhere; confidence feeds only the calibration axis
 - exchanges are charged and running past the budget or the horizon fails closed; the candidate receives two closures and not the ledger, so it cannot raise its own budget or rewind the time; malformed submissions and malformed calls score zero and never raise out of the evaluator
@@ -106,7 +109,7 @@ provenance:
   fresh_confirmation_status: not_completed
 novelty_risk:
   level: medium
-  rationale: That offsets cannot be separated from delay asymmetry is textbook (Lundelius and Lynch 1984; Freris, Graham and Kumar 2011), the optimal bounds under delay bounds are published (Halpern, Megiddo and Munshi 1985; Attiya, Herzberg and Rajsbaum 1996), and so are the lower-envelope LP for skew (Moon, Skelly and Towsley 1999) and minimum filtering (Mills 1991; Veitch, Babu and Pasztor 2004). A model that knows them will reach for NTP minima or an envelope fit. What is not published is how to turn a floor on the empty-queue probability into rows that make faults visible under jitter, and how to split 20000 exchanges over links and time when rates drift by up to 30 ppm. NTP-style answers score zero because they claim every unsupported world and miss offsets in supported ones, and an envelope LP without the empty-queue rows scores zero too. The shortcut probe bounds what a searcher gets at 68 per cent of the reference. The reference's headroom is deliberate and documented, since its union-bound margins are wide. Task.md names neither the faults' kinds nor which worlds carry them. No frontier draw has been run yet, so the difficulty at the frontier is not measured.
+  rationale: That offsets cannot be separated from delay asymmetry is textbook (Lundelius and Lynch 1984; Freris, Graham and Kumar 2011), the optimal bounds under delay bounds are published (Halpern, Megiddo and Munshi 1985; Attiya, Herzberg and Rajsbaum 1996), and so are the lower-envelope LP for skew (Moon, Skelly and Towsley 1999) and minimum filtering (Mills 1991; Veitch, Babu and Pasztor 2004). A model that knows them will reach for NTP minima or an envelope fit. What is not published is how to turn a floor on the empty-queue probability into rows that make faults visible under jitter, and how to split 20000 exchanges over links and time when rates drift by up to 30 ppm. NTP-style answers score zero because they claim every unsupported world and miss offsets in supported ones, and an envelope LP without the empty-queue rows scores zero too. The shortcut probe bounds what a searcher gets at 68 per cent of the reference. The gap between the reference and the same LP at a three-sigma margin is a safety choice and not an omitted method; its union-bound margins are wide, and at 2.5 sigmas the held-out false discoveries begin. Task.md names neither the faults' kinds nor which worlds carry them. No frontier draw has been run yet, so the difficulty at the frontier is not measured.
 lineage:
   status: complete
   builder_model_ids:
@@ -152,12 +155,17 @@ construction_audit:
   red_team_rounds: 6
   oracle_disagreement_status: not_quantified
   independent_recomputation_status: >-
-    HOLD. On repaired revision 56778e87 the fixed ten-call Linux sandbox plan
-    completed with two valid baseline scores of zero and eight invalid
-    candidate_runtime_error results across reference, detection-only, no-order,
-    and no-atom pairs. These failures retain score -1e18. The later exact row-hull
-    reduction has only data-free local equivalence tests, no full-task replay.
-    The full oracle property suite timed out after 900 seconds with failures;
-    no complete passing result or JUnit was produced. Standard contribution-gate
-    and independent frontier-model calibration remain not run on this package.
-    Earlier builder direct-driver results refer to original PR head 2dd3302.
+    On revision 56778e87 the fixed ten-call Linux sandbox plan completed with two
+    valid baseline scores of zero and eight invalid candidate_runtime_error results
+    across reference, detection-only, no-order and no-atom pairs; those records keep
+    score -1e18 and are not rewritten. The cause was the LP solver: HiGHS starts
+    worker threads, which the sandbox's seccomp filter denies, and the interior-point
+    fallback stops at its iteration limit in two of the 18 worlds. The reference and
+    its three declared candidates now solve the same LPs with SciPy's revised simplex
+    (Bland's rule), which runs in the calling thread. .research/clock_sync/solver_check.py
+    reproduces the thread count and compares the package solver with HiGHS world by
+    world over eight run seeds. The reference, the ladder, the 29-strategy probe and
+    the sixteen-seed robustness check were re-run in process on this source, and
+    summary.py recomputes every quoted number. Not run here, because the build machine
+    has no Bubblewrap and no model endpoint: the Linux sandbox gate that fills the
+    shortcut_probe declarations, the wrapper double run and the first-proposal calibration.

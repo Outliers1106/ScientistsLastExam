@@ -162,8 +162,10 @@ from earlier packages are historical reviewer evidence in `references/known_best
 
 - Only edit `solution.py`; keep `identify(problem, exchange, wait)`.
 - NumPy, SciPy and the standard library only. Deterministic CPU code.
-- The validation environment pins NumPy 1.24.4 and SciPy 1.10.1. HiGHS currently
-  exits inside this candidate sandbox; SciPy's `interior-point` and `revised simplex`
-  backends are available. Scale time units when solving LPs with microsecond errors.
+- The validation environment pins NumPy 1.24.4 and SciPy 1.10.1. The candidate sandbox
+  is single-threaded: `linprog(method="highs")` starts worker threads and exits there.
+  SciPy's `revised simplex` and `interior-point` backends run in the calling thread; the
+  interior-point method can stop at its iteration limit on ill-scaled LPs, so scale time
+  units and centre the clocks when solving LPs with microsecond errors.
 - `sle.contract_lint` is importable and free to call for shape checks. It costs no exchange.
 - Do not read `verification/` or `frontier_eval/`.

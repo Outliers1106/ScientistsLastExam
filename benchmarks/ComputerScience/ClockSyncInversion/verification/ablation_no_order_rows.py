@@ -36,7 +36,6 @@ from fractions import Fraction
 
 import numpy as np
 from scipy.optimize import linprog
-from scipy.sparse import csc_matrix
 from scipy.stats import beta, binom, norm
 
 CFG = {"rounds": 12, "keep": 3, "groups": 3, "delta": 1e-3, "atoms": True, "detect_only": False,
@@ -51,6 +50,11 @@ def _solve_centered_lp(c, A, b, bounds, center, scale):
     Clock offsets/rates can dwarf sub-microsecond residuals. Subtract the
     public-observation rough-clock fit before unit scaling, and shift propagation
     variables by their public lower bounds. No constraint or objective changes.
+
+    The solver is SciPy's revised simplex with Bland's rule: it runs in the
+    calling thread only. HiGHS starts worker threads, which the candidate
+    sandbox's seccomp filter refuses (clone is denied), and the legacy
+    interior-point method stops at its iteration limit on some of these LPs.
     """
     c, A, b = np.asarray(c), np.asarray(A), np.asarray(b)
     objective = c * scale
@@ -61,10 +65,10 @@ def _solve_centered_lp(c, A, b, bounds, center, scale):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", DeprecationWarning)
         result = linprog(objective / objective_scale,
-                         A_ub=csc_matrix(A * scale / 1e-6),
+                         A_ub=A * scale / 1e-6,
                          b_ub=(b - A @ center) / 1e-6, bounds=shifted_bounds,
-                         method="interior-point",
-                         options={"tol": 1e-9, "maxiter": 1000, "sparse": True})
+                         method="revised simplex",
+                         options={"tol": 1e-9, "maxiter": 20000, "pivot": "bland"})
     # Unboundedness or numerical failure is not evidence of model infeasibility.
     if result.status not in (0, 2):
         raise RuntimeError("LP did not establish an optimum or infeasibility")
@@ -201,8 +205,8 @@ def identify(problem, exchange, wait, cfg=None):
     reduced_rows = {}
 
     def solve(c, A, b):
-        # HiGHS exits in the pinned candidate sandbox. The legacy sparse backend
-        # requires residual-sized coordinates rather than large absolute clocks.
+        # HiGHS exits in the pinned candidate sandbox (see _solve_centered_lp). The
+        # legacy backends want residual-sized coordinates rather than absolute clocks.
         scale = np.full(nv, 1e-6)
         scale[N - 1:2 * (N - 1)] /= H
         center = np.concatenate([th[1:], sk[1:], [L[d] for d in dirs]])
@@ -275,6 +279,7 @@ def identify(problem, exchange, wait, cfg=None):
                 return {"verdict": "no_model", "confidence": 0.9}
             intervals[str(j)].append([float(lo.fun), float(-hi.fun)])
     return {"verdict": "offsets", "intervals": intervals, "confidence": 0.6}
+
 
 # Fixed disclosed configuration; no task data or hidden oracle imports.
 CFG.update({'order': False})
