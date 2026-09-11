@@ -32,6 +32,7 @@ delta = 10^-3 per world; the tilt allowance is outside that bound.
 """
 import math
 import warnings
+from fractions import Fraction
 
 import numpy as np
 from scipy.optimize import linprog
@@ -73,6 +74,55 @@ def _solve_centered_lp(c, A, b, bounds, center, scale):
         result.x = center + result.x * scale
         result.fun = float(result.fun * objective_scale + c @ center)
     return result
+
+
+def _clock_row_indices(A, b, clock_count):
+    """Keep the exact lower hull of parallel affine-in-time clock inequalities.
+
+    Within a direction/sign group every row is a0 + t*a1. A point (t,b)
+    above the chord between two others is implied by their convex combination.
+    Fraction arithmetic tests this implication exactly for the supplied binary
+    floats; no geometric/numerical tolerance can drop a stronger constraint.
+    Asymmetry rows and any unrecognized rows are kept unchanged.
+    """
+    A, b = np.asarray(A), np.asarray(b)
+    keep, groups = set(), {}
+    for index, (row, rhs) in enumerate(zip(A, b)):
+        theta = row[:clock_count]
+        rate = row[clock_count:2 * clock_count]
+        propagation = row[2 * clock_count:]
+        active = np.flatnonzero(theta)
+        prop = np.flatnonzero(propagation)
+        if (not len(active) or len(prop) != 1 or
+                not np.all(np.isin(theta, [-1, 0, 1])) or
+                abs(propagation[prop[0]]) != 1):
+            keep.add(index)
+            continue
+        t = float(rate[active[0]] / theta[active[0]])
+        if not np.array_equal(rate, theta * t) or not math.isfinite(t) or not math.isfinite(rhs):
+            keep.add(index)
+            continue
+        key = tuple(theta) + tuple(propagation)
+        groups.setdefault(key, []).append((Fraction(t), Fraction(float(rhs)), index))
+    for points in groups.values():
+        # For equal times only the lowest rhs is needed. Keep one identical row.
+        points.sort()
+        distinct = []
+        for point in points:
+            if not distinct or point[0] != distinct[-1][0]:
+                distinct.append(point)
+        hull = []
+        for point in distinct:
+            while len(hull) >= 2:
+                left, middle = hull[-2], hull[-1]
+                cross = ((middle[0] - left[0]) * (point[1] - left[1]) -
+                         (middle[1] - left[1]) * (point[0] - left[0]))
+                if cross > 0:
+                    break
+                hull.pop()
+            hull.append(point)
+        keep.update(point[2] for point in hull)
+    return sorted(keep)
 
 
 def identify(problem, exchange, wait, cfg=None):
@@ -148,13 +198,21 @@ def identify(problem, exchange, wait, cfg=None):
             row = np.zeros(nv); row[pidx[(i, j)]] = s; row[pidx[(j, i)]] = -s
             Aub.append(row); bub.append(alpha)
 
+    reduced_rows = {}
+
     def solve(c, A, b):
         # HiGHS exits in the pinned candidate sandbox. The legacy sparse backend
         # requires residual-sized coordinates rather than large absolute clocks.
         scale = np.full(nv, 1e-6)
         scale[N - 1:2 * (N - 1)] /= H
         center = np.concatenate([th[1:], sk[1:], [L[d] for d in dirs]])
-        return _solve_centered_lp(c, A, b, bounds, center, scale)
+        # Rows are only appended or truncated to a previous prefix in this
+        # algorithm. Reuse each stage's identical feasible set across objectives.
+        if len(A) not in reduced_rows:
+            kept = _clock_row_indices(A, b, N - 1)
+            reduced_rows[len(A)] = np.asarray(A)[kept], np.asarray(b)[kept]
+        reduced_A, reduced_b = reduced_rows[len(A)]
+        return _solve_centered_lp(c, reduced_A, reduced_b, bounds, center, scale)
 
     # lower envelope: the fit that leaves the least total slack in the kept rows
     c = np.zeros(nv)

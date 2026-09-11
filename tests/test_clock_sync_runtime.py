@@ -49,6 +49,49 @@ def test_infeasible_lp_remains_distinct_from_numerical_failure():
     assert result.status == 2
 
 
+def test_row_hull_retains_binary_float_stronger_and_unrecognized_rows():
+    ref = load("reference_envelope_lp")
+    # The middle row is stronger by one binary ulp. A tolerance-based geometric
+    # test could discard it, changing the feasible set.
+    a = np.array([[1, 0, 1], [1, 1, 1], [1, 2, 1], [0, 0, 2], [1, 1, 1]])
+    b = np.array([1, np.nextafter(1.0, 0.0), 1, 4, 2])
+    assert ref._clock_row_indices(a, b, 1) == [0, 1, 2, 3]
+
+
+def test_row_hull_preserves_all_constraints_and_independent_lp_objectives():
+    from scipy.optimize import linprog
+    ref = load("reference_envelope_lp")
+    # Fixed data-free upper/atom groups, two propagation variables and an
+    # asymmetry constraint. The independent HiGHS checks use the ORIGINAL rows.
+    rows, rhs = [], []
+    for direction, sign in ((0, 1), (0, -1), (1, 1), (1, -1)):
+        for t in range(13):
+            row = [sign, sign * t, sign if direction == 0 else 0,
+                   sign if direction == 1 else 0]
+            rows.append(row)
+            rhs.append(4 + (t - 6) ** 2 / 16 + (t % 3) / 8)
+    rows.extend([[0, 0, 1, -1], [0, 0, -1, 1]])
+    rhs.extend([0.5, 0.5])
+    a, b = np.asarray(rows, float), np.asarray(rhs, float)
+    bounds = [(-5, 5)] * 2 + [(0, 5)] * 2
+    kept = ref._clock_row_indices(a, b, 1)
+    assert len(kept) < len(b) and kept[-2:] == [52, 53]
+    reduced_a, reduced_b = a[kept], b[kept]
+    # A subset cannot exclude original feasible points. Conversely, maximize
+    # EVERY original inequality on the reduced polytope: none can be violated.
+    for row, limit in zip(a, b):
+        witness = linprog(-row, A_ub=reduced_a, b_ub=reduced_b,
+                          bounds=bounds, method="highs")
+        assert witness.success and -witness.fun <= limit + 1e-8
+    for c in (np.array([1, -2, 3, -4]), np.array([-3, 2, 1, 4]),
+              a.sum(axis=0), -a.sum(axis=0)):
+        original = linprog(c, A_ub=a, b_ub=b, bounds=bounds, method="highs")
+        reduced = linprog(c, A_ub=reduced_a, b_ub=reduced_b,
+                          bounds=bounds, method="highs")
+        assert original.success and reduced.success
+        assert reduced.fun == pytest.approx(original.fun, abs=1e-8)
+
+
 def test_candidate_reset_covers_every_world_and_split_boundary():
     oracle = load("evaluator")
 
