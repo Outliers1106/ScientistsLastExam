@@ -35,8 +35,10 @@ with explicit counts. The previous fraction over all worlds is retained under
 `all_world_false_claim_fraction`. World generation, budgets and valid-world scores
 are unchanged. Three focused regressions failed before the repair and passed after
 it. All four targeted Linux regressions, including the real per-world sandbox
-reset, pass (4 passed, 0 skipped, 9.56 seconds). The original full oracle suite
-is still running and is not counted as passed.
+reset, pass (4 passed, 0 skipped, 9.56 seconds). The optional original full oracle suite was stopped by the operator after the
+scientific hold was established; it remained incomplete and is neither counted
+as passed nor treated as a scientific failure. Its partial log and stop receipt
+remain in private operator storage.
 
 **Decision: HOLD.** CONTRIBUTING C12/C14 require a capable complete reference and
 hardening when a standard probe exceeds it. The original reference is materially
