@@ -113,3 +113,28 @@ fixed replay of all three retained programs twice verifies compatibility of thos
 documentation edits; it does not add model samples. Its completed receipt summary
 is recorded separately before final publication. Domain review and certification
 remain pending.
+
+
+## Retained-program replay and final documentation
+
+All six fixed retained-program evaluations completed at clean `4bacb6c86`
+(the full SHA and package hash are in `pr83_retained_replay_2026-09-12.json`).
+Each evaluation was valid in all 18 worlds and its complete metrics exactly
+matched the original source-bound receipt. No model call was added.
+
+A subsequent documentation check found a YAML scalar colon and a calibration
+evidence path outside the schema's `experiments/` namespace. The original
+3-failed/3-passed card log and JUnit remain private. Commit `384a6eca` fixes
+those documentation issues; all six card tests passed on Linux with zero skips
+in 4.30 seconds. The card marks the calibration evidence `historical_only`
+to avoid claiming a new scientific admission on the final documentation SHA.
+Only TASK_CARD.yaml changes inside the package after the six-call replay;
+Task.md, evaluator, reference, probes and baseline remain byte-identical.
+The scientific HOLD is bound to the clean `91d82c1c` model experiment, with
+6 later repeat receipts; it is not affected by this formatting repair.
+
+This review executed 47 task/CandidateProxy calls: fixed methods 10, wrappers 2,
+world-isolation test 1, two contribution gates 22, calibration baselines and
+first proposals 6, and retained proposals 6. Direct in-process oracle-property
+tests and the captured-LP engineering check are separate. Intentional malformed
+candidates in the contribution gates are not counted as valid scientific methods.

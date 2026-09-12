@@ -1,0 +1,61 @@
+{
+  "admission": "HOLD",
+  "contribution_final_checks_passed": 16,
+  "contribution_gate_calls": 22,
+  "criterion_D16": "failed",
+  "dependencies_changed": false,
+  "first_proposals_reaching_reference": 2,
+  "fixed_linux_method_calls": 10,
+  "fixed_linux_method_valid_calls": 10,
+  "fixed_reference_wrapper_calls": 2,
+  "historical_failure_records_preserved": true,
+  "model_first_proposals": 3,
+  "model_returned_response_usage": {
+    "input_tokens": 10821,
+    "output_tokens": 42744,
+    "total_tokens": 53565
+  },
+  "new_adaptive_candidate_retries": 0,
+  "public_evidence_scope": "aggregate metrics, counts, source identities and private artifact hashes; no retained candidate program or raw provider record",
+  "real_task_candidate_proxy_calls_including_baselines_and_intentional_bad_candidates": 47,
+  "reason": "two_of_three_valid_first_proposals_exceed_frozen_reference_and_public_schedule_exposes_true_send_times",
+  "remaining_owned_model_or_evaluation_jobs": 0,
+  "retained_program_full_metrics_match_original": true,
+  "retained_program_replays": 6,
+  "sandbox_rules_relaxed": false,
+  "schema_version": 1,
+  "scientific_source_changes_after_draws": false,
+  "tests": [
+    {
+      "artifact": "task-tests.xml",
+      "counts": {
+        "errors": "0",
+        "failures": "0",
+        "hostname": "t2vg-a100-G4-50",
+        "name": "pytest",
+        "skipped": "0",
+        "tests": "21",
+        "time": "45.445",
+        "timestamp": "2026-09-12T04:37:07.953736+00:00"
+      },
+      "sha256": "2db9c1e1d092a43bb5a5456e5a78a39216e6c748ae025362caa7156a46be5576",
+      "source_revision": "c74e9c6188a156e30c158602d2232e5460749851"
+    },
+    {
+      "artifact": "corrected-card-tests.xml",
+      "counts": {
+        "errors": "0",
+        "failures": "0",
+        "hostname": "t2vg-a100-G4-50",
+        "name": "pytest",
+        "skipped": "0",
+        "tests": "6",
+        "time": "4.303",
+        "timestamp": "2026-09-12T05:12:27.069908+00:00"
+      },
+      "sha256": "4b30f13f000ee657f6220a6a2b81617aaca6519220632c1b992496a248c02e40",
+      "source_revision": "384a6eca"
+    }
+  ],
+  "valid_complete_first_proposals": 3
+}
