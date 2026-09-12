@@ -34,7 +34,9 @@ invalidate the headline task result, and defines FDR over valid positive claims
 with explicit counts. The previous fraction over all worlds is retained under
 `all_world_false_claim_fraction`. World generation, budgets and valid-world scores
 are unchanged. Three focused regressions failed before the repair and passed after
-it; full Linux test results are recorded separately when complete.
+it. All four targeted Linux regressions, including the real per-world sandbox
+reset, pass (4 passed, 0 skipped, 9.56 seconds). The original full oracle suite
+is still running and is not counted as passed.
 
 **Decision: HOLD.** CONTRIBUTING C12/C14 require a capable complete reference and
 hardening when a standard probe exceeds it. The original reference is materially
