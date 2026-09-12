@@ -100,7 +100,7 @@ candidate source disclosure. Inspection of the privately retained perfect first
 proposal confirms that it uses known send times for clock regression, alongside
 separate delay/model checks. It does not obtain evaluator code through the sandbox.
 The source locations are `Task.md`'s exchange contract and `verification/evaluator.py`
-lines 219, 242, 250 and 254; the timestamps are generated at the known schedule.
+lines 219, 242, 250 and 255; the timestamps are generated at the known schedule.
 
 A repair requires redesigning the time-control and observation contract and then
 re-deriving the identifiability anchor. Raising the reference or changing worlds,
