@@ -1,0 +1,277 @@
+{
+  "C_declared_probe_and_two_ablations": "passed",
+  "D_first_proposal_calibration": "not_run",
+  "captured_lp_comparison": {
+    "all_removed_rows_proved": true,
+    "captured_lp_sha256": "988052ec0c41008a99f081a60a31fbde63d3640b5ad12d2b63a9dc1ad4386855",
+    "columns": 26,
+    "driver_sha256": "4836816ef122abc554c48154b388c51191a5d79e7e01fc58ec781e5202cd545f",
+    "exact_rational_implications_proved": 686,
+    "historical_solver_status": 1,
+    "independent_lp_results": [
+      {
+        "method": "original_all_rows",
+        "objective": null,
+        "status": 2
+      },
+      {
+        "method": "reduced_rows",
+        "objective": null,
+        "status": 2
+      },
+      {
+        "method": "current_revised_simplex_reduced",
+        "objective": null,
+        "status": 2
+      }
+    ],
+    "original_rows": 820,
+    "passed": true,
+    "retained_rows": 134,
+    "schema_version": 1,
+    "scope": "one retained failing development LP; no new task evaluation or score"
+  },
+  "driver_sha256": "4c35e8e0b4b8c8bbe5014372533b8ba3a08e6e247ed51e5d0b030665561d2ac5",
+  "evaluations": 10,
+  "historical_invalid_calls": "preserved separately; not current-source failures",
+  "numpy": "1.24.4",
+  "python": "3.8.10",
+  "repeat_full_metrics_identical": {
+    "baseline": true,
+    "detection_only": true,
+    "no_atom_rows": true,
+    "no_order_rows": true,
+    "reference": true
+  },
+  "runs": [
+    {
+      "aggregate_metrics": {
+        "combined_score": 0.0,
+        "development_correct_refusal_rate": 0.0,
+        "development_discovery_coverage": 1.0,
+        "development_false_discovery_rate": 1.0,
+        "heldout_correct_refusal_rate": 0.0,
+        "heldout_discovery_coverage": 1.0,
+        "heldout_false_discovery_rate": 1.0,
+        "heldout_mechanism_score": 0.0,
+        "valid": 1.0
+      },
+      "candidate": "baseline",
+      "candidate_sha256": "2c327ddcd8eb29d931ba80c04dc4d7db05758beed040e6fcc1b70f9fff4b2271",
+      "canonical_metrics_sha256": "b10a24f6642222b7dc3eb48e88d3376a2762a4a122965965d395ff76b7aac550",
+      "elapsed_seconds": 8.279363190755248,
+      "raw_sha256": "c45a12a1743efd42a3675d623b57e2e34fb92bf237a1391eb8c661e4e53e004b",
+      "repeat": 0,
+      "valid_worlds": 18,
+      "world_count": 18
+    },
+    {
+      "aggregate_metrics": {
+        "combined_score": 0.0,
+        "development_correct_refusal_rate": 0.0,
+        "development_discovery_coverage": 1.0,
+        "development_false_discovery_rate": 1.0,
+        "heldout_correct_refusal_rate": 0.0,
+        "heldout_discovery_coverage": 1.0,
+        "heldout_false_discovery_rate": 1.0,
+        "heldout_mechanism_score": 0.0,
+        "valid": 1.0
+      },
+      "candidate": "baseline",
+      "candidate_sha256": "2c327ddcd8eb29d931ba80c04dc4d7db05758beed040e6fcc1b70f9fff4b2271",
+      "canonical_metrics_sha256": "b10a24f6642222b7dc3eb48e88d3376a2762a4a122965965d395ff76b7aac550",
+      "elapsed_seconds": 8.064923079684377,
+      "raw_sha256": "c45a12a1743efd42a3675d623b57e2e34fb92bf237a1391eb8c661e4e53e004b",
+      "repeat": 1,
+      "valid_worlds": 18,
+      "world_count": 18
+    },
+    {
+      "aggregate_metrics": {
+        "combined_score": 0.5688535714285714,
+        "development_correct_refusal_rate": 1.0,
+        "development_discovery_coverage": 1.0,
+        "development_false_discovery_rate": 0.0,
+        "heldout_correct_refusal_rate": 1.0,
+        "heldout_discovery_coverage": 1.0,
+        "heldout_false_discovery_rate": 0.0,
+        "heldout_mechanism_score": 0.5028667499999999,
+        "valid": 1.0
+      },
+      "candidate": "reference",
+      "candidate_sha256": "c178aa82e5406a7d06679d1dded1c815da8542274ede032304cc6eee1595657b",
+      "canonical_metrics_sha256": "db5ba39521a9423604df351be9f0352bd5f4786135a35b6ab78b5174f0f14962",
+      "elapsed_seconds": 21.557491574436426,
+      "raw_sha256": "c2b5b9e1159824868123188a303f2a9595b60856727937c8330b003bda62754e",
+      "repeat": 0,
+      "valid_worlds": 18,
+      "world_count": 18
+    },
+    {
+      "aggregate_metrics": {
+        "combined_score": 0.5688535714285714,
+        "development_correct_refusal_rate": 1.0,
+        "development_discovery_coverage": 1.0,
+        "development_false_discovery_rate": 0.0,
+        "heldout_correct_refusal_rate": 1.0,
+        "heldout_discovery_coverage": 1.0,
+        "heldout_false_discovery_rate": 0.0,
+        "heldout_mechanism_score": 0.5028667499999999,
+        "valid": 1.0
+      },
+      "candidate": "reference",
+      "candidate_sha256": "c178aa82e5406a7d06679d1dded1c815da8542274ede032304cc6eee1595657b",
+      "canonical_metrics_sha256": "db5ba39521a9423604df351be9f0352bd5f4786135a35b6ab78b5174f0f14962",
+      "elapsed_seconds": 22.150244502350688,
+      "raw_sha256": "c2b5b9e1159824868123188a303f2a9595b60856727937c8330b003bda62754e",
+      "repeat": 1,
+      "valid_worlds": 18,
+      "world_count": 18
+    },
+    {
+      "aggregate_metrics": {
+        "combined_score": 0.38472685714285704,
+        "development_correct_refusal_rate": 1.0,
+        "development_discovery_coverage": 1.0,
+        "development_false_discovery_rate": 0.0,
+        "heldout_correct_refusal_rate": 1.0,
+        "heldout_discovery_coverage": 1.0,
+        "heldout_false_discovery_rate": 0.0,
+        "heldout_mechanism_score": 0.298126,
+        "valid": 1.0
+      },
+      "candidate": "detection_only",
+      "candidate_sha256": "20d79946e91952457e3d5882c4021b28b71505b798bcd6739f8a760ee063ed9e",
+      "canonical_metrics_sha256": "618849454f5152ad3424672b3992877c9968e6261ff07bb299cc481545663904",
+      "elapsed_seconds": 21.97480338998139,
+      "raw_sha256": "180282177ce5783700f18fdb84fe83063527b831d6e0de1b1c657a39fdebc28a",
+      "repeat": 0,
+      "valid_worlds": 18,
+      "world_count": 18
+    },
+    {
+      "aggregate_metrics": {
+        "combined_score": 0.38472685714285704,
+        "development_correct_refusal_rate": 1.0,
+        "development_discovery_coverage": 1.0,
+        "development_false_discovery_rate": 0.0,
+        "heldout_correct_refusal_rate": 1.0,
+        "heldout_discovery_coverage": 1.0,
+        "heldout_false_discovery_rate": 0.0,
+        "heldout_mechanism_score": 0.298126,
+        "valid": 1.0
+      },
+      "candidate": "detection_only",
+      "candidate_sha256": "20d79946e91952457e3d5882c4021b28b71505b798bcd6739f8a760ee063ed9e",
+      "canonical_metrics_sha256": "618849454f5152ad3424672b3992877c9968e6261ff07bb299cc481545663904",
+      "elapsed_seconds": 21.667928114533424,
+      "raw_sha256": "180282177ce5783700f18fdb84fe83063527b831d6e0de1b1c657a39fdebc28a",
+      "repeat": 1,
+      "valid_worlds": 18,
+      "world_count": 18
+    },
+    {
+      "aggregate_metrics": {
+        "combined_score": 0.5071945714285715,
+        "development_correct_refusal_rate": 1.0,
+        "development_discovery_coverage": 1.0,
+        "development_false_discovery_rate": 0.0,
+        "heldout_correct_refusal_rate": 1.0,
+        "heldout_discovery_coverage": 1.0,
+        "heldout_false_discovery_rate": 0.0,
+        "heldout_mechanism_score": 0.44496149999999995,
+        "valid": 1.0
+      },
+      "candidate": "no_order_rows",
+      "candidate_sha256": "4d128f024d45c874817e8048881c6ea32f45af88e4971634dc86ad6aa9524dc5",
+      "canonical_metrics_sha256": "45d4898f8e254d45357024cef8831ae83ff1221a3d3c2f182d512d1c05989034",
+      "elapsed_seconds": 21.378945358097553,
+      "raw_sha256": "650bdd36a9ab58b324787c907ef3e0432a21278e5f009bda6667bfbdca97cc18",
+      "repeat": 0,
+      "valid_worlds": 18,
+      "world_count": 18
+    },
+    {
+      "aggregate_metrics": {
+        "combined_score": 0.5071945714285715,
+        "development_correct_refusal_rate": 1.0,
+        "development_discovery_coverage": 1.0,
+        "development_false_discovery_rate": 0.0,
+        "heldout_correct_refusal_rate": 1.0,
+        "heldout_discovery_coverage": 1.0,
+        "heldout_false_discovery_rate": 0.0,
+        "heldout_mechanism_score": 0.44496149999999995,
+        "valid": 1.0
+      },
+      "candidate": "no_order_rows",
+      "candidate_sha256": "4d128f024d45c874817e8048881c6ea32f45af88e4971634dc86ad6aa9524dc5",
+      "canonical_metrics_sha256": "45d4898f8e254d45357024cef8831ae83ff1221a3d3c2f182d512d1c05989034",
+      "elapsed_seconds": 21.30345200933516,
+      "raw_sha256": "650bdd36a9ab58b324787c907ef3e0432a21278e5f009bda6667bfbdca97cc18",
+      "repeat": 1,
+      "valid_worlds": 18,
+      "world_count": 18
+    },
+    {
+      "aggregate_metrics": {
+        "combined_score": 0.0,
+        "development_correct_refusal_rate": 0.2,
+        "development_discovery_coverage": 1.0,
+        "development_false_discovery_rate": 0.36363636363636365,
+        "heldout_correct_refusal_rate": 0.0,
+        "heldout_discovery_coverage": 1.0,
+        "heldout_false_discovery_rate": 0.3333333333333333,
+        "heldout_mechanism_score": 0.0,
+        "valid": 1.0
+      },
+      "candidate": "no_atom_rows",
+      "candidate_sha256": "bb4334a0acb00df4c8fafb864c3c8854a05c926dd911bc9cd0a9417c482ac59c",
+      "canonical_metrics_sha256": "3f6a30a7854ede33865c655b26fa7516b0b8a4489adcc293c55c603f14685d80",
+      "elapsed_seconds": 20.759897174313664,
+      "raw_sha256": "bf39407af58afad7fbd2d004dfd62b2bd90a362d4c32a63f30512908dbdb26aa",
+      "repeat": 0,
+      "valid_worlds": 18,
+      "world_count": 18
+    },
+    {
+      "aggregate_metrics": {
+        "combined_score": 0.0,
+        "development_correct_refusal_rate": 0.2,
+        "development_discovery_coverage": 1.0,
+        "development_false_discovery_rate": 0.36363636363636365,
+        "heldout_correct_refusal_rate": 0.0,
+        "heldout_discovery_coverage": 1.0,
+        "heldout_false_discovery_rate": 0.3333333333333333,
+        "heldout_mechanism_score": 0.0,
+        "valid": 1.0
+      },
+      "candidate": "no_atom_rows",
+      "candidate_sha256": "bb4334a0acb00df4c8fafb864c3c8854a05c926dd911bc9cd0a9417c482ac59c",
+      "canonical_metrics_sha256": "3f6a30a7854ede33865c655b26fa7516b0b8a4489adcc293c55c603f14685d80",
+      "elapsed_seconds": 21.32839236781001,
+      "raw_sha256": "bf39407af58afad7fbd2d004dfd62b2bd90a362d4c32a63f30512908dbdb26aa",
+      "repeat": 1,
+      "valid_worlds": 18,
+      "world_count": 18
+    }
+  ],
+  "runtime_source_sha256": "218443f2bd0d8acb16506cfe2974cacb8621f617d7d7c51fe693d10702d62b8b",
+  "schema_version": 1,
+  "scipy": "1.10.1",
+  "scope": "fixed Linux CandidateProxy pairs; no model calls or adaptive grid",
+  "source_revision": "c74e9c6188a156e30c158602d2232e5460749851",
+  "task_id": "DistributedSystems/ClockSyncInversion",
+  "task_package_sha256": "dc3a70b4e7a86864a8f382511f8607c17e53cd58437cdc51bb3c25a2128f3d3c",
+  "task_tests": {
+    "failed": 0,
+    "junit_sha256": "2db9c1e1d092a43bb5a5456e5a78a39216e6c748ae025362caa7156a46be5576",
+    "passed": 21,
+    "seconds": 45.44,
+    "skipped": 0
+  },
+  "timeout_seconds": 300,
+  "valid_evaluations": 10,
+  "worlds_per_evaluation": 18,
+  "wrapper_full_metrics_identical_to_fixed_reference": true,
+  "wrapper_reference_calls": 2
+}

@@ -2,10 +2,10 @@ schema_version: 2
 # Admission status: the numerical failure behind the 2026-09-11 HOLD is repaired
 # (the reference's LPs are solved by single-threaded revised simplex; see
 # references/known_best.md, "Numerical repair"). The scores and ablations below are
-# in-process builder measurements on that repaired source; the Linux sandbox gate,
-# the shortcut declarations and the first-proposal calibration remain to be run by
-# the maintainer. .research/pr83_numerical_hold_2026-09-11.md keeps the failed
-# replay plans unchanged.
+# in-process builder measurements on that repaired source. The independent Linux
+# fixed-pair replay at c74e9c618 fills the declarations below; its full metrics are
+# identical across repeats and the wrapper. First-proposal calibration is pending.
+# .research/pr83_numerical_hold_2026-09-11.md keeps the failed replay plans unchanged.
 evaluation_budget:
   timeout_s: 300
 shortcut_probe:
@@ -13,11 +13,11 @@ shortcut_probe:
   metric: combined_score
   reference:
     candidate: verification/reference_envelope_lp.py
-    expected_score: null
+    expected_score: 0.5688535714285714
   probes:
   - id: detection_only_z3
     candidate: verification/shortcut_detection_only.py
-    expected_score: null
+    expected_score: 0.38472685714285704
   relative_margin: 0.1
   score_tolerance: 0.000001
 metric_contract:
