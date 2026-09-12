@@ -1,5 +1,23 @@
 # ClockSyncInversion: known best
 
+## Independent admission HOLD (2026-09-12)
+
+The numerical repair passed the real Linux fixed-pair, wrapper and complete
+contribution gates. Independent calibration at clean `91d82c1c` nevertheless
+failed D16: the three valid first proposals scored 0.449633, 0.790774 and 1.0
+against the frozen development reference 0.568854. Their held-out scores were
+0.518355, 0.571359 and 1.0. Every proposal was valid in all 18 worlds.
+
+The public schedule reveals exact true send times, so initiating an exchange
+from node i yields `T1 - t = theta_i + s_i*t + noise`, without an unknown
+propagation delay. The perfect first proposal uses this direct clock regression.
+This contradicts the claimed interval-only identifiability and requires a new
+time-control/observation design and a re-derived anchor. No reference, world,
+threshold, budget or candidate was altered after the draws. The complete
+source-bound review is `.research/pr83_admission_review_2026-09-12.md`.
+
+The historical builder and failed-solver records below remain unchanged in scope.
+
 ## Numerical repair (2026-09-11, after the admission HOLD)
 
 The HOLD of 2026-09-11 rested on a solver problem, not on the science. The complete

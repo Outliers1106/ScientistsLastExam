@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "rows": [
+    {
+      "full_file_sha256": "7bae186e2526bde139e1b428741f9fc10813b0c794bc445ca4ce552d28916ec6",
+      "full_metrics_equal_reference": true,
+      "private_mode_checked": true,
+      "public_keys": [
+        "combined_score",
+        "feasibility_rate",
+        "raw_score",
+        "valid"
+      ],
+      "public_sha256": "8ef65c16944a777af302b4ae6db7a129e2406095845449c01b6b51450e704cdd",
+      "repeat": 0
+    },
+    {
+      "full_file_sha256": "7bae186e2526bde139e1b428741f9fc10813b0c794bc445ca4ce552d28916ec6",
+      "full_metrics_equal_reference": true,
+      "private_mode_checked": true,
+      "public_keys": [
+        "combined_score",
+        "feasibility_rate",
+        "raw_score",
+        "valid"
+      ],
+      "public_sha256": "8ef65c16944a777af302b4ae6db7a129e2406095845449c01b6b51450e704cdd",
+      "repeat": 1
+    }
+  ],
+  "schema_version": 1,
+  "scope": "two unchanged c74e9c618 standard wrapper evaluations of the frozen reference"
+}
