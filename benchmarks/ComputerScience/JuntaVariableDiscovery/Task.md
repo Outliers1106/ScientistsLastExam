@@ -116,6 +116,16 @@ the development worlds, renormalised so that **declining every world scores exac
 values clip to 0. `confidence` feeds only the calibration axis and cannot turn a false discovery
 into anything else.
 
+Each world starts a fresh candidate session; state persists across queries within
+that world. A task run is valid only when every development and held-out world
+returns a valid submission. A partially failed run receives zero headline score.
+The false-discovery rate is erroneous valid junta claims divided by all valid
+junta claims, including claims in unsupported worlds. An empty claim denominator
+is reported as zero with its explicit denominator zero; it is not evidence of
+successful discovery. The previous false-claim fraction over all worlds has the
+separate name `all_world_false_claim_fraction`. Refusal and discovery coverage
+also carry explicit counts and denominators for each split.
+
 Reported separately, never averaged into one number:
 
 `development_interval_sharpness` (the mean recall over the junta worlds) ·

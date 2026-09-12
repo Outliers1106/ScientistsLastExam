@@ -276,6 +276,9 @@ def _evaluate_world(identify, spec, split, index):
     bench = _Bench(world, spec["run_seed"])
     base = {"split": split, "world_index": int(index), "kind": world["kind"], "queries_used": 0}
     try:
+        reset = getattr(identify, "reset_session", None)
+        if callable(reset):
+            reset()
         query = bench.oracle()
         submission = identify(public_problem(world), query)
         relevant, confidence = _validate_submission(submission, world["n"])
@@ -313,13 +316,25 @@ def _split_summary(records):
     supported = [r for r in records if r["kind"] == "supported"]
     unsupported = [r for r in records if r["kind"] == "unsupported"]
     raw = float(np.mean([r["mechanism_score"] for r in records]))
+    claims = [r for r in records if r["valid"] and not r["abstained"]]
+    false_claims = sum(bool(r["false_discovery"]) for r in claims)
     always_abstain = len(unsupported) / len(records)
     normalized = float(np.clip((raw - always_abstain) / (1.0 - always_abstain), 0.0, 1.0))
     return {
         "normalized_mechanism": normalized,
         "raw_mechanism": raw,
         "interval_sharpness": float(np.mean([r["sharpness"] for r in supported])),
-        "false_discovery_rate": float(np.mean([r["false_discovery"] for r in records])),
+        "false_discovery_rate": false_claims / max(1, len(claims)),
+        "false_discovery_count": false_claims,
+        "false_discovery_denominator": len(claims),
+        "all_world_false_claim_fraction": false_claims / len(records),
+        "mechanism_score_sum": sum(r["mechanism_score"] for r in records),
+        "mechanism_score_denominator": len(records),
+        "correct_refusal_count": sum(bool(r["correct_refusal"]) for r in unsupported),
+        "correct_refusal_denominator": len(unsupported),
+        "discovery_count": sum(r["valid"] and not r["abstained"] for r in supported),
+        "discovery_denominator": len(supported),
+        "discovery_attempt_count": len(claims),
         "correct_refusal_rate": float(np.mean([r["correct_refusal"] for r in unsupported])),
         "discovery_coverage": float(np.mean([not r["abstained"] for r in supported])),
         "confidence_calibration": float(np.mean([r["confidence_calibration_score"] for r in records])),
@@ -336,7 +351,7 @@ def evaluate(identify):
                for index, spec in enumerate(HELDOUT_WORLDS)]
     dev = _split_summary(development)
     held = _split_summary(heldout)
-    valid = 1.0 if dev["valid_count"] > 0 else 0.0
+    valid = float(dev["valid_count"] == dev["world_count"] and held["valid_count"] == held["world_count"])
     return {
         "combined_score": dev["normalized_mechanism"] if valid else 0.0,
         "valid": valid,
@@ -357,5 +372,11 @@ def evaluate(identify):
         "heldout_false_discovery_rate": held["false_discovery_rate"],
         "heldout_correct_refusal_rate": held["correct_refusal_rate"],
         "heldout_discovery_coverage": held["discovery_coverage"],
+        **{split + "_" + key: summary[key]
+           for split, summary in (("development", dev), ("heldout", held))
+           for key in ("false_discovery_count", "false_discovery_denominator",
+                       "all_world_false_claim_fraction", "mechanism_score_sum", "mechanism_score_denominator",
+                       "correct_refusal_count", "correct_refusal_denominator", "discovery_count",
+                       "discovery_denominator", "discovery_attempt_count", "valid_count", "world_count")},
         "per_instance": development + heldout,
     }
