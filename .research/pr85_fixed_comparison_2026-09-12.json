@@ -1,0 +1,136 @@
+{
+  "source_revision": "0a6857652eb3c9c23e7cbdb3af3864da005d04c0",
+  "plan_sha256": "e59e03a81a1428855bd5a91d3a6dffd61503c8684801c76485d54db3c2be5089",
+  "runtime_source_sha256": "e29d3b1d7b0e0f9f5b1b09a8c0a45ace098ad8790547d0333c1940e0a421bea9",
+  "methods": [
+    {
+      "name": "baseline",
+      "candidate_sha256": "bbcf6f37b2840d6502e7c054b9a44db874a6af9b0fec71d3092553f98e9eac5c",
+      "full_metrics_identical": true,
+      "metrics": {
+        "combined_score": 0.0,
+        "valid": 1.0,
+        "development_false_discovery_rate": 0.4166666666666667,
+        "development_correct_refusal_rate": 0.0,
+        "development_mean_probes_used": 20000.0,
+        "heldout_mechanism_score": 0.0,
+        "heldout_false_discovery_rate": 0.3333333333333333,
+        "heldout_correct_refusal_rate": 0.0,
+        "development_false_discovery_count": 5,
+        "development_false_discovery_denominator": 12,
+        "development_valid_count": 12,
+        "heldout_false_discovery_count": 2,
+        "heldout_false_discovery_denominator": 6,
+        "heldout_valid_count": 6
+      }
+    },
+    {
+      "name": "original_reference",
+      "candidate_sha256": "cdc9b7019849650ece73f2104a6949ebb27f3d513530489338092d444bf49cd7",
+      "full_metrics_identical": true,
+      "metrics": {
+        "combined_score": 0.5476191428571431,
+        "valid": 1.0,
+        "development_false_discovery_rate": 0.0,
+        "development_correct_refusal_rate": 1.0,
+        "development_mean_probes_used": 17976.0,
+        "heldout_mechanism_score": 0.6041667500000001,
+        "heldout_false_discovery_rate": 0.0,
+        "heldout_correct_refusal_rate": 1.0,
+        "development_false_discovery_count": 0,
+        "development_false_discovery_denominator": 7,
+        "development_valid_count": 12,
+        "heldout_false_discovery_count": 0,
+        "heldout_false_discovery_denominator": 4,
+        "heldout_valid_count": 6
+      }
+    },
+    {
+      "name": "correlation_claims_pivotal_refusal",
+      "candidate_sha256": "5533061394f7330db7f22fcff719e7241826b7679f8bc06179f2ae76b5b4f18d",
+      "full_metrics_identical": true,
+      "metrics": {
+        "combined_score": 0.3333330000000001,
+        "valid": 1.0,
+        "development_false_discovery_rate": 0.0,
+        "development_correct_refusal_rate": 1.0,
+        "development_mean_probes_used": 19968.0,
+        "heldout_mechanism_score": 0.33333299999999993,
+        "heldout_false_discovery_rate": 0.0,
+        "heldout_correct_refusal_rate": 1.0,
+        "development_false_discovery_count": 0,
+        "development_false_discovery_denominator": 7,
+        "development_valid_count": 12,
+        "heldout_false_discovery_count": 0,
+        "heldout_false_discovery_denominator": 4,
+        "heldout_valid_count": 6
+      }
+    },
+    {
+      "name": "pivotal_without_refusal",
+      "candidate_sha256": "c255278b0a35d8725bd0d8e0a4da4a62fc2e00f0158328d3c9d090a9f2de8b7a",
+      "full_metrics_identical": true,
+      "metrics": {
+        "combined_score": 0.0,
+        "valid": 1.0,
+        "development_false_discovery_rate": 0.4166666666666667,
+        "development_correct_refusal_rate": 0.0,
+        "development_mean_probes_used": 17976.0,
+        "heldout_mechanism_score": 0.10416675000000002,
+        "heldout_false_discovery_rate": 0.3333333333333333,
+        "heldout_correct_refusal_rate": 0.0,
+        "development_false_discovery_count": 5,
+        "development_false_discovery_denominator": 12,
+        "development_valid_count": 12,
+        "heldout_false_discovery_count": 2,
+        "heldout_false_discovery_denominator": 6,
+        "heldout_valid_count": 6
+      }
+    },
+    {
+      "name": "shared_exact_single",
+      "candidate_sha256": "a344421fb388570823078865912f1059ea00adae8a15b28cbbe8d445a5d6d8e4",
+      "full_metrics_identical": true,
+      "metrics": {
+        "combined_score": 0.845238142857143,
+        "valid": 1.0,
+        "development_false_discovery_rate": 0.0,
+        "development_correct_refusal_rate": 1.0,
+        "development_mean_probes_used": 19981.0,
+        "heldout_mechanism_score": 1.0,
+        "heldout_false_discovery_rate": 0.0,
+        "heldout_correct_refusal_rate": 1.0,
+        "development_false_discovery_count": 0,
+        "development_false_discovery_denominator": 7,
+        "development_valid_count": 12,
+        "heldout_false_discovery_count": 0,
+        "heldout_false_discovery_denominator": 4,
+        "heldout_valid_count": 6
+      }
+    },
+    {
+      "name": "shared_exact_majority3",
+      "candidate_sha256": "5291bc2f132c622a37eacd0878cdeb4df845cb001c0e57114040d03a3e2d303e",
+      "full_metrics_identical": true,
+      "metrics": {
+        "combined_score": 0.9404762857142858,
+        "valid": 1.0,
+        "development_false_discovery_rate": 0.0,
+        "development_correct_refusal_rate": 1.0,
+        "development_mean_probes_used": 19923.0,
+        "heldout_mechanism_score": 0.97916675,
+        "heldout_false_discovery_rate": 0.0,
+        "heldout_correct_refusal_rate": 1.0,
+        "development_false_discovery_count": 0,
+        "development_false_discovery_denominator": 7,
+        "development_valid_count": 12,
+        "heldout_false_discovery_count": 0,
+        "heldout_false_discovery_denominator": 4,
+        "heldout_valid_count": 6
+      }
+    }
+  ],
+  "actual_evaluations": 12,
+  "model_calls": 0,
+  "scope": "Fixed 12-call Linux trusted-driver/CandidateProxy comparison; no parameter or heldout selection."
+}
